@@ -1,0 +1,31 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ImportGroup Label="PropertySheets" />
+  <PropertyGroup Label="UserMacros">
+    <ARTOOLKITDIR>C:\ARToolKit</ARTOOLKITDIR>
+    <ARTOOLKITINCLUDE>C:\ARToolKit\include</ARTOOLKITINCLUDE>
+    <ARTOOLKITLIB>C:\ARToolKit\lib</ARTOOLKITLIB>
+  </PropertyGroup>
+  <PropertyGroup />
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(ARTOOLKITINCLUDE);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <AdditionalLibraryDirectories>$(ARTOOLKITLIB);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libAR.lib;libARgsub_lite.lib;libARvideo.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <BuildMacro Include="ARTOOLKITDIR">
+      <Value>$(ARTOOLKITDIR)</Value>
+    </BuildMacro>
+    <BuildMacro Include="ARTOOLKITINCLUDE">
+      <Value>$(ARTOOLKITINCLUDE)</Value>
+    </BuildMacro>
+    <BuildMacro Include="ARTOOLKITLIB">
+      <Value>$(ARTOOLKITLIB)</Value>
+    </BuildMacro>
+  </ItemGroup>
+</Project>

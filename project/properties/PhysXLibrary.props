@@ -1,0 +1,23 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ImportGroup Label="PropertySheets" />
+  <PropertyGroup Label="UserMacros">
+    <PHYSXDIR>C:\Program Files (x86)\Apps\NVIDIA Corporation\NVIDIA PhysX SDK\v2.8.1\SDKs</PHYSXDIR>
+  </PropertyGroup>
+  <PropertyGroup />
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(PHYSXDIR)/Physics/include;$(PHYSXDIR)/Foundation/include;$(PHYSXDIR)/PhysXLoader/include;$(PHYSXDIR)/Cooking/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <AdditionalLibraryDirectories>$(PHYSXDIR)/lib/Win32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>PhysXLoader.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <BuildMacro Include="PHYSXDIR">
+      <Value>$(PHYSXDIR)</Value>
+    </BuildMacro>
+  </ItemGroup>
+</Project>
