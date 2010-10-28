@@ -13,15 +13,273 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Header Files\game">
+      <UniqueIdentifier>{14ceda66-da31-42f8-bb1a-e96541d52386}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\game\states">
+      <UniqueIdentifier>{4f9848f1-dd74-420b-a905-5c3cccf7d19d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\game">
+      <UniqueIdentifier>{0e5e42c0-1abe-41e7-8267-5fa106502640}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\game\states">
+      <UniqueIdentifier>{5901c58e-66d7-4829-8d32-16a5114ebde8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\base">
+      <UniqueIdentifier>{7e9955ec-01d9-46fe-8843-7d98cabe9849}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\light">
+      <UniqueIdentifier>{56818533-a667-4271-aaf9-38ca293884e9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\light">
+      <UniqueIdentifier>{c1290692-dd64-4a7a-8a32-cfacc1d4e15e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\material">
+      <UniqueIdentifier>{a0263f94-e35f-451b-8714-f97be0c82af3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\material">
+      <UniqueIdentifier>{914ddef2-dcee-4ac6-ab78-5860bebd1a9d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\renderer">
+      <UniqueIdentifier>{20a593b4-29d7-40ec-946d-f52e5563c383}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\renderer">
+      <UniqueIdentifier>{5f9c115f-ceb7-4dd6-bd9b-ac324858680c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\util">
+      <UniqueIdentifier>{d5465233-5cb7-48e2-a364-348d180dbb45}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\util">
+      <UniqueIdentifier>{bba55a5a-4fe8-49c4-a57d-6b480ee11943}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\texture">
+      <UniqueIdentifier>{977cef33-0c0b-4c54-904f-5d5237793bc9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\texture">
+      <UniqueIdentifier>{ad9ca3e5-c966-419e-be29-ab3a62eab3bf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\shadow">
+      <UniqueIdentifier>{a93b2b27-2560-4ff5-b7ce-0e3a43214fdc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\shadow">
+      <UniqueIdentifier>{02f9aa71-20d7-4bb8-a9ac-eae983160715}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\math">
+      <UniqueIdentifier>{9f046add-77e3-4f68-908e-465fcffae8cc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\math">
+      <UniqueIdentifier>{05e1fef8-ab45-4594-8c91-cae172d2bf09}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\cull">
+      <UniqueIdentifier>{185e9ec9-1884-49ec-b1e0-f4341939e698}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\cull">
+      <UniqueIdentifier>{c547c341-1e2e-4d1c-87c6-c0583881e42c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\mesh">
+      <UniqueIdentifier>{8c7387fb-148b-4311-bdb0-5fc98d6ed351}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\mesh">
+      <UniqueIdentifier>{2454f49e-d396-449c-9b47-2514b979332b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\collision_detection">
+      <UniqueIdentifier>{63383873-3ac0-452c-bfff-43218a64afd4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\collision_detection">
+      <UniqueIdentifier>{e07fbb24-d99a-424a-b540-9ef3cb787825}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\base">
+      <UniqueIdentifier>{1804354f-e8d2-4069-bafa-0cda8b78ad07}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="source\game\states\game_state_manager.cpp">
+      <Filter>Source Files\game\states</Filter>
+    </ClCompile>
+    <ClCompile Include="source\game\states\game_state.cpp">
+      <Filter>Source Files\game\states</Filter>
+    </ClCompile>
+    <ClCompile Include="source\light\light.cpp">
+      <Filter>Source Files\light</Filter>
+    </ClCompile>
+    <ClCompile Include="source\material\material.cpp">
+      <Filter>Source Files\material</Filter>
+    </ClCompile>
+    <ClCompile Include="source\renderer\renderer.cpp">
+      <Filter>Source Files\renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="source\util\rand.cpp">
+      <Filter>Source Files\util</Filter>
+    </ClCompile>
+    <ClCompile Include="source\texture\texture.cpp">
+      <Filter>Source Files\texture</Filter>
+    </ClCompile>
+    <ClCompile Include="source\texture\texture_manager.cpp">
+      <Filter>Source Files\texture</Filter>
+    </ClCompile>
+    <ClCompile Include="source\shadows\shadows.cpp">
+      <Filter>Source Files\shadow</Filter>
+    </ClCompile>
+    <ClCompile Include="source\math\vec3.cpp">
+      <Filter>Source Files\math</Filter>
+    </ClCompile>
+    <ClCompile Include="source\math\vec4.cpp">
+      <Filter>Source Files\math</Filter>
+    </ClCompile>
+    <ClCompile Include="source\cull\frustum_culling.cpp">
+      <Filter>Source Files\cull</Filter>
+    </ClCompile>
+    <ClCompile Include="source\cull\cull.cpp">
+      <Filter>Source Files\cull</Filter>
+    </ClCompile>
+    <ClCompile Include="source\renderer\opengl_renderer.cpp">
+      <Filter>Source Files\renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="source\mesh\mesh.cpp">
+      <Filter>Source Files\mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="source\mesh\mesh_manager.cpp">
+      <Filter>Source Files\mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="source\mesh\face.cpp">
+      <Filter>Source Files\mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="source\mesh\group.cpp">
+      <Filter>Source Files\mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="source\mesh\mesh_obj.cpp">
+      <Filter>Source Files\mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="source\collision_detection\bounding_box.cpp">
+      <Filter>Source Files\collision_detection</Filter>
+    </ClCompile>
+    <ClCompile Include="source\renderer\hud.cpp">
+      <Filter>Source Files\renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="source\base\locator.cpp">
+      <Filter>Source Files\base</Filter>
+    </ClCompile>
+    <ClCompile Include="source\renderer\mesh_renderer.cpp">
+      <Filter>Source Files\renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="source\renderer\opengl_mesh_renderer.cpp">
+      <Filter>Source Files\renderer</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="source\global.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="source\game\states\game_state_manager.h">
+      <Filter>Header Files\game\states</Filter>
+    </ClInclude>
+    <ClInclude Include="source\game\states\game_state.h">
+      <Filter>Header Files\game\states</Filter>
+    </ClInclude>
+    <ClInclude Include="source\base\singleton.h">
+      <Filter>Header Files\base</Filter>
+    </ClInclude>
+    <ClInclude Include="source\light\light.h">
+      <Filter>Header Files\light</Filter>
+    </ClInclude>
+    <ClInclude Include="source\light\light_inl.h">
+      <Filter>Header Files\light</Filter>
+    </ClInclude>
+    <ClInclude Include="source\material\material.h">
+      <Filter>Header Files\material</Filter>
+    </ClInclude>
+    <ClInclude Include="source\material\material_inl.h">
+      <Filter>Header Files\material</Filter>
+    </ClInclude>
+    <ClInclude Include="source\renderer\renderer.h">
+      <Filter>Header Files\renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="source\util\rand.h">
+      <Filter>Header Files\util</Filter>
+    </ClInclude>
+    <ClInclude Include="source\util\string.h">
+      <Filter>Header Files\util</Filter>
+    </ClInclude>
+    <ClInclude Include="source\texture\texture.h">
+      <Filter>Header Files\texture</Filter>
+    </ClInclude>
+    <ClInclude Include="source\texture\texture_manager.h">
+      <Filter>Header Files\texture</Filter>
+    </ClInclude>
+    <ClInclude Include="source\shadows\shadows.h">
+      <Filter>Header Files\shadow</Filter>
+    </ClInclude>
     <ClInclude Include="source\main.h">
-      <Filter>Source Files</Filter>
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="source\math\vec3.h">
+      <Filter>Header Files\math</Filter>
+    </ClInclude>
+    <ClInclude Include="source\math\vec3_inl.h">
+      <Filter>Header Files\math</Filter>
+    </ClInclude>
+    <ClInclude Include="source\math\vec4.h">
+      <Filter>Header Files\math</Filter>
+    </ClInclude>
+    <ClInclude Include="source\math\vec4_inl.h">
+      <Filter>Header Files\math</Filter>
+    </ClInclude>
+    <ClInclude Include="source\math\vector.h">
+      <Filter>Header Files\math</Filter>
+    </ClInclude>
+    <ClInclude Include="source\cull\frustum_culling.h">
+      <Filter>Header Files\cull</Filter>
+    </ClInclude>
+    <ClInclude Include="source\cull\cull.h">
+      <Filter>Header Files\cull</Filter>
+    </ClInclude>
+    <ClInclude Include="source\renderer\opengl_renderer.h">
+      <Filter>Header Files\renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="source\opengl_includes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="source\mesh\mesh_manager.h">
+      <Filter>Header Files\mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="source\mesh\mesh_inl.h">
+      <Filter>Header Files\mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="source\mesh\mesh.h">
+      <Filter>Header Files\mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="source\mesh\face.h">
+      <Filter>Header Files\mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="source\mesh\group.h">
+      <Filter>Header Files\mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="source\mesh\mesh_obj.h">
+      <Filter>Header Files\mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="source\collision_detection\bounding_box.h">
+      <Filter>Header Files\collision_detection</Filter>
+    </ClInclude>
+    <ClInclude Include="source\renderer\hud.h">
+      <Filter>Header Files\renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="source\base\locator.h">
+      <Filter>Header Files\base</Filter>
+    </ClInclude>
+    <ClInclude Include="source\base\locator_inl.h">
+      <Filter>Header Files\base</Filter>
+    </ClInclude>
+    <ClInclude Include="source\renderer\null_renderer.h">
+      <Filter>Header Files\renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="source\renderer\mesh_renderer.h">
+      <Filter>Header Files\renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="source\renderer\opengl_mesh_renderer.h">
+      <Filter>Header Files\renderer</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -11,10 +11,70 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="source\base\locator.cpp" />
+    <ClCompile Include="source\collision_detection\bounding_box.cpp" />
+    <ClCompile Include="source\cull\cull.cpp" />
+    <ClCompile Include="source\cull\frustum_culling.cpp" />
+    <ClCompile Include="source\game\states\game_state.cpp" />
+    <ClCompile Include="source\game\states\game_state_manager.cpp" />
+    <ClCompile Include="source\light\light.cpp" />
     <ClCompile Include="source\main.cpp" />
+    <ClCompile Include="source\material\material.cpp" />
+    <ClCompile Include="source\math\vec3.cpp" />
+    <ClCompile Include="source\math\vec4.cpp" />
+    <ClCompile Include="source\mesh\face.cpp" />
+    <ClCompile Include="source\mesh\group.cpp" />
+    <ClCompile Include="source\mesh\mesh.cpp" />
+    <ClCompile Include="source\mesh\mesh_manager.cpp" />
+    <ClCompile Include="source\mesh\mesh_obj.cpp" />
+    <ClCompile Include="source\renderer\hud.cpp" />
+    <ClCompile Include="source\renderer\mesh_renderer.cpp" />
+    <ClCompile Include="source\renderer\opengl_mesh_renderer.cpp" />
+    <ClCompile Include="source\renderer\opengl_renderer.cpp" />
+    <ClCompile Include="source\renderer\renderer.cpp" />
+    <ClCompile Include="source\shadows\shadows.cpp" />
+    <ClCompile Include="source\texture\texture.cpp" />
+    <ClCompile Include="source\texture\texture_manager.cpp" />
+    <ClCompile Include="source\util\rand.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="source\base\locator.h" />
+    <ClInclude Include="source\base\locator_inl.h" />
+    <ClInclude Include="source\base\singleton.h" />
+    <ClInclude Include="source\collision_detection\bounding_box.h" />
+    <ClInclude Include="source\cull\cull.h" />
+    <ClInclude Include="source\cull\frustum_culling.h" />
+    <ClInclude Include="source\game\states\game_state.h" />
+    <ClInclude Include="source\game\states\game_state_manager.h" />
+    <ClInclude Include="source\global.h" />
+    <ClInclude Include="source\light\light.h" />
+    <ClInclude Include="source\light\light_inl.h" />
     <ClInclude Include="source\main.h" />
+    <ClInclude Include="source\material\material.h" />
+    <ClInclude Include="source\material\material_inl.h" />
+    <ClInclude Include="source\math\vec3.h" />
+    <ClInclude Include="source\math\vec3_inl.h" />
+    <ClInclude Include="source\math\vec4.h" />
+    <ClInclude Include="source\math\vec4_inl.h" />
+    <ClInclude Include="source\math\vector.h" />
+    <ClInclude Include="source\mesh\face.h" />
+    <ClInclude Include="source\mesh\group.h" />
+    <ClInclude Include="source\mesh\mesh.h" />
+    <ClInclude Include="source\mesh\mesh_inl.h" />
+    <ClInclude Include="source\mesh\mesh_manager.h" />
+    <ClInclude Include="source\mesh\mesh_obj.h" />
+    <ClInclude Include="source\opengl_includes.h" />
+    <ClInclude Include="source\renderer\hud.h" />
+    <ClInclude Include="source\renderer\mesh_renderer.h" />
+    <ClInclude Include="source\renderer\null_renderer.h" />
+    <ClInclude Include="source\renderer\opengl_mesh_renderer.h" />
+    <ClInclude Include="source\renderer\opengl_renderer.h" />
+    <ClInclude Include="source\renderer\renderer.h" />
+    <ClInclude Include="source\shadows\shadows.h" />
+    <ClInclude Include="source\texture\texture.h" />
+    <ClInclude Include="source\texture\texture_manager.h" />
+    <ClInclude Include="source\util\rand.h" />
+    <ClInclude Include="source\util\string.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{65FBE688-1907-442F-9EB8-3019938D93D6}</ProjectGuid>
@@ -57,6 +117,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <AdditionalIncludeDirectories>.\source;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
