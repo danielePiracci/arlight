@@ -41,12 +41,40 @@
 
 #include <stdio.h>
 #include <stdlib.h>					// malloc(), free()
-#ifdef __APPLE__
-#  include <GLUT/glut.h>
-#else
+
+#include "opengl_includes.h"
+
+
+
+#include "renderer\opengl_renderer.h"
+
+#include "mesh\mesh_obj.h"
+
+#include "base/locator_inl.h"
+
+////////////////////////////////////////////
+//// Pruebas para agregar las texturas ...
+
+DissertationProject::OpenGLRenderer renderer;
+
+//// Prueba para cargar un modelo.
+//DissertationProject::MeshObj mesh_test;
+boost::shared_ptr<DissertationProject::MeshObj> mesh_test;
+
+/// Prueba para desplegar HUD.
+void RenderHUD();
+void RenderRotatingMesh();
+////////////////////////////////////////////
+
+
+//#ifdef __APPLE__
+//#  include <GLUT/glut.h>
+//#else
 //#  include <GL/glut.h>
-#  include "glut.h"
-#endif
+//#  include "glut.h"
+//#endif
+
+
 #include <AR/config.h>
 #include <AR/video.h>
 #include <AR/param.h>			// arParamDisp()
@@ -92,6 +120,41 @@ static ARGL_CONTEXT_SETTINGS_REF gArglSettings = NULL;
 static int gDrawRotate = FALSE;
 static float gDrawRotateAngle = 0;			// For use in drawing.
 
+
+
+
+
+
+
+
+
+//////////////////////////////////
+// NOTE: ESTO ES NUEVO, LO AGREGUE SOLO PARA PODER HACER EL HUD.
+void ViewOrtho(int x, int y)							// Set Up An Ortho View
+{
+	glMatrixMode(GL_PROJECTION);					// Select Projection
+	glPushMatrix();							// Push The Matrix
+	glLoadIdentity();						// Reset The Matrix
+	glOrtho( 0, x , y , 0, -1, 1 );				// Select Ortho Mode
+	glMatrixMode(GL_MODELVIEW);					// Select Modelview Matrix
+	glPushMatrix();							// Push The Matrix
+	glLoadIdentity();						// Reset The Matrix
+}
+
+void ViewPerspective(void)							// Set Up A Perspective View
+{
+	glMatrixMode( GL_PROJECTION );					// Select Projection
+	glPopMatrix();							// Pop The Matrix
+	glMatrixMode( GL_MODELVIEW );					// Select Modelview
+	glPopMatrix();							// Pop The Matrix
+}
+///////////////////////////////////////////
+
+
+
+
+
+
 // ============================================================================
 //	Functions
 // ============================================================================
@@ -99,6 +162,10 @@ static float gDrawRotateAngle = 0;			// For use in drawing.
 // Something to look at, draw a rotating colour cube.
 static void DrawCube(void)
 {
+
+ // glEnable(GL_TEXTURE_2D);
+//glBindTexture(GL_TEXTURE_2D, 1);
+
 	// Colour cube data.
 	static GLuint polyList = 0;
 	float fSize = 0.5f;
@@ -115,6 +182,11 @@ static void DrawCube(void)
 	const short cube_faces [6][4] = {
 	{3, 2, 1, 0}, {2, 3, 7, 6}, {0, 1, 5, 4}, {3, 0, 4, 7}, {1, 2, 6, 5}, {4, 5, 6, 7} };
 	
+    /*const GLfloat cube_textcoord [8][3] = {
+	{1.0, 1.0, 1.0}, {1.0, -1.0, 1.0}, {-1.0, -1.0, 1.0}, {-1.0, 1.0, 1.0},
+	{1.0, 1.0, -1.0}, {1.0, -1.0, -1.0}, {-1.0, -1.0, -1.0}, {-1.0, 1.0, -1.0} };
+	*/
+   
 	if (!polyList) {
 		polyList = glGenLists (1);
 		glNewList(polyList, GL_COMPILE);
@@ -143,6 +215,11 @@ static void DrawCube(void)
 	glCallList(polyList);	// Draw the cube.
 	glPopMatrix();	// Restore world coordinate system.
 	
+
+
+  
+  //glBindTexture(GL_TEXTURE_2D, 0);
+  //glDisable(GL_TEXTURE_2D);
 }
 
 static void DrawCubeUpdate(float timeDelta)
@@ -240,6 +317,9 @@ static void cleanup(void)
 	arglCleanup(gArglSettings);
 	arVideoCapStop();
 	arVideoClose();
+
+  // To release all the resources.
+  DissertationProject::Locator::Release();
 }
 
 static void Keyboard(unsigned char key, int x, int y)
@@ -425,18 +505,56 @@ static void Display(void)
 		glLoadMatrixd(m);
 
 		// All lighting and geometry to be drawn relative to the marker goes here.
-		DrawCube();
+		//DrawCube();
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, 1);
+  glTranslatef(0, 0, 1);
+glScalef(2, 2, 2);
+mesh_test->drawSurface(0);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glDisable(GL_TEXTURE_2D);
 	
 	} // gPatt_found
 	
 	// Any 2D overlays go here.
 	//none
 	
+    ////////////////////////////////////
+    /// NOTE: PRueba para pintar los HUD de la aplicacion.
+    
+    // TODO: hacer que los hud se desplieguen a travez de un manager que se 
+    // encargue de hacer esta funcionalidad. Tener en cuenta que el tamaño de 
+    // la ventana es importante al mommento de hacer el viewOrtho, por lo que 
+    // este valor deberia ser accessible desde cualquier punto de la aplicacion.
+
+
+    //RenderRotatingMesh();
+
+    /// Prueba para desplegar HUD del programa.
+    RenderHUD();
+
+    /////////////////////////////////////
+
 	glutSwapBuffers();
 }
 
 int main(int argc, char** argv)
 {
+    ///////////////////////////////////////////
+    // NOTE: prueba para cargar las texturas //
+	
+    // Initialize the use of glew
+	glewInit();
+
+	
+    // Initialize the services on the application.
+    DissertationProject::Locator::Initilize();
+
+    //renderer.LoadTexture("../../media/textures/box.bmp");
+
+    ///////////////////////////////////////////
+
+
 	char glutGamemode[32];
 	char *cparam_name = "../../Data/camera_para.dat";
 	char *vconf = "";
@@ -498,11 +616,96 @@ int main(int argc, char** argv)
 	glutVisibilityFunc(Visibility);
 	glutKeyboardFunc(Keyboard);
 	
+
+    renderer.LoadTexture("../../media/textures/box.bmp");
+    //renderer.LoadTexture("../../media/textures/logo2.png");
+
+    // TODO: crear una variable global que defina el path de la aplicacion actual.
+
+    mesh_test = boost::shared_ptr<DissertationProject::MeshObj> (new DissertationProject::MeshObj());
+    mesh_test->Load("../../media/mesh/cube.obj");
+
+
+    
+
+boost::shared_ptr<DissertationProject::Renderer>& rend = 
+    DissertationProject::Locator::GetRenderer();
+
+  ///  rend->LoadTexture("");
+
+    DissertationProject::Locator::Register(boost::shared_ptr<DissertationProject::Renderer> ());
+
+
 	glutMainLoop();
 
 int ii;
 scanf("%d", &ii);
 	return (0);
+
+}
+
+void RenderRotatingMesh() {
+    //glDisable(GL_LIGHTING);
+
+    glLoadIdentity();
+
+    
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, 1);
+
+    glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    glTranslatef(1.2, -0.8, -5);
+
+    static float rot = 0;
+    rot += 5;
+    glRotatef(rot, 0, 1, 0);
+
+    
+    mesh_test->drawSurface(0);
+
+    glDisable(GL_BLEND);
+
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glDisable(GL_TEXTURE_2D);
+}
+
+/// Test to render a HUD...
+void RenderHUD() {
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, 1);
+
+    glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+
+    glDisable(GL_DEPTH_TEST);
+    glDepthMask(GL_FALSE);
+    ViewOrtho(640, 480);
+    
+    glTranslatef(0, 352, 0);
+
+    glColor4f(1, 1, 1, 1.0f);
+    glBegin(GL_QUADS);
+      glTexCoord2f(0, 1);
+      glVertex2f(0, 0);
+      glTexCoord2f(1, 1);
+      glVertex2f(128, 0);
+      glTexCoord2f(1, 0);
+      glVertex2f(128, 128);
+      glTexCoord2f(0, 0);
+      glVertex2f(0, 128);
+    glEnd();
+    
+    glEnable(GL_DEPTH_TEST);
+    glDepthMask(GL_TRUE);
+    ViewPerspective();
+
+    glDisable(GL_BLEND);
+
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glDisable(GL_TEXTURE_2D);
 }
 
 

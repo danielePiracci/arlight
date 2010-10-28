@@ -6,6 +6,7 @@
     <Import Project="PhysXLibrary.props" />
     <Import Project="ReleaseFMOD.props" />
     <Import Project="ARToolKitLibrary.props" />
+    <Import Project="FreeImageLibrary.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup />
