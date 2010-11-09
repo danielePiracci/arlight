@@ -10,8 +10,6 @@
 
 #include "global.h"
 #include "math/vector.h"
-//#include "scene/scene.h"
-//#include "mesh/mesh_manager.h"
 #include "texture/texture_manager.h"
 #include "renderer/mesh_renderer.h"
 
@@ -24,7 +22,6 @@ class Camera;
 class Light;
 class Material;
 
-//template<typename MatrixHandler, typename MeshHandler, typename TextureHandler>
 class Renderer {
  public:  
   /// \brief Standard constructor.
@@ -32,6 +29,9 @@ class Renderer {
 
   /// \brief Default destructor.
   virtual ~Renderer();
+
+  /// \brrief Method to get a new texture object.
+  virtual boost::shared_ptr<Texture> GetNewTexture() const = 0;
 
   /// \brief Method to get a new mesh renderer object.
   virtual boost::shared_ptr<MeshRenderer> GetNewMeshRenderer() const = 0;
@@ -50,11 +50,7 @@ class Renderer {
   /// \brief Method to load a mesh.
   /// \param[in] file_path Mesh file path.
   virtual void LoadMesh(const std::string& file_path) = 0;
-*/
-  /// \brief Method to load a texture.
-  /// \param[in] file_path Texture file path.
-  virtual void LoadTexture(const std::string& file_path) = 0;
-/*
+
   /// \brief Method to set up a camera.
   /// \param[in] camera Camera to be used in the renderer.
   virtual void SetCamera(const Camera& camera) = 0;

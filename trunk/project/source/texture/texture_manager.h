@@ -15,7 +15,7 @@
 
 BEGIN_PROJECT_NAMESPACE();
 
-template<typename T>
+//template<typename T>
 class TextureManager {
  public:
   /// \brief Standard constructor.
@@ -27,15 +27,15 @@ class TextureManager {
   /// \brief Add a texture with handler to the specified file path.
   /// \param[in] file_path Path where is located the texture in the hard drive.
   /// \param[in] handler Pointer to the texture handler.
-  void AddTexture(const std::string& file_path, T* handler);
+//  void AddTexture(const std::string& file_path, T* handler);
 
   /// \brief Remove the specified texture from the texture manager.
   /// \param[in] file_path Path where is located the texture in the hard drive.
-  void RemoveTexture(const std::string& file_path);
+//  void RemoveTexture(const std::string& file_path);
 
   /// \brief Look up a texture in the texture manager.
   /// \param[in] file_path Path where is located the texture in the hard drive.
-  boost::shared_ptr<Texture<T> > GetTexture(const std::string& file_path) const;
+//  boost::shared_ptr<Texture<T> > GetTexture(const std::string& file_path) const;
 
   /// \brief Look up for the first texture in the texture manager.
   std::string GetNextTextureName() const;
@@ -44,13 +44,29 @@ class TextureManager {
   /// \return The number of textures stored in the manager.
   int size() const;
 
+
+  void EnableTexture(const std::string& texture_name);
+
+  void DisableTexture(const std::string& texture_name);
+
+
+  void RegisterTexture2D(const std::string& name, const std::string& file_path);
+
+  void RegisterTextureCubeMap(const std::string& name, const std::string& file_path);
+  
+//  void UnRegister(const std::string& file_path);
+
+
  private:
   /// \brief Map with all contained textures.
-  std::map<std::string, boost::shared_ptr<Texture<T> > > textures_;
+
+  std::map<std::string, boost::shared_ptr<Texture> > textures_by_path_; // only one path is related to a texture.
+  std::map<std::string, boost::shared_ptr<Texture> > textures_by_name_; // many names can point to same texture.
+
 
   DISALLOW_COPY_AND_ASSIGN(TextureManager);
 };
-
+/*
 template<typename T>
 TextureManager<T>::TextureManager() { }
 
@@ -85,6 +101,7 @@ template<typename T>
 int TextureManager<T>::size() const {
   return static_cast<int> (textures_.size());
 }
+*/
 
 END_PROJECT_NAMESPACE();
 

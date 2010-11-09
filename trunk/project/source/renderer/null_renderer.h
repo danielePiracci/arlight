@@ -12,6 +12,7 @@
 
 #include "global.h"
 #include "renderer/renderer.h"
+#include "texture/null_texture.h"
 
 BEGIN_PROJECT_NAMESPACE();
 
@@ -23,8 +24,13 @@ class NullRenderer : public Renderer {
   /// \brief Default destructor.
   ~NullRenderer() { }
 
+  /// \brrief Method to get a new texture object.
+  virtual inline boost::shared_ptr<Texture> GetNewTexture() const {
+    return boost::shared_ptr<NullTexture> (new NullTexture());
+  }
+
   /// \brief Method to get a new mesh renderer object.
-  virtual boost::shared_ptr<MeshRenderer> GetNewMeshRenderer() const {
+  virtual inline boost::shared_ptr<MeshRenderer> GetNewMeshRenderer() const {
     return boost::shared_ptr<MeshRenderer> ();
   }
 

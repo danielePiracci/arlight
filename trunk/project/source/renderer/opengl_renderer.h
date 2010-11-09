@@ -11,9 +11,6 @@
 #include "global.h"
 #include "renderer/renderer.h"
 #include "texture/texture_manager.h"
-//#include "glew.h"
-//#include "gl.h"
-//#include "glu.h"
 #include "opengl_includes.h"
 #include "math/vector.h"
 #include "string"
@@ -33,23 +30,16 @@ class OpenGLRenderer : public Renderer {
   /// \brief Method to get a new mesh renderer object.
   virtual boost::shared_ptr<MeshRenderer> GetNewMeshRenderer() const;
 
-  /// \brief Method to load a texture.
-  /// \param[in] file_path Texture file path.
-  virtual void LoadTexture(const std::string& file_path);
- 
+  /// \brrief Method to get a new texture object.
+  virtual boost::shared_ptr<Texture> GetNewTexture() const;
+
   // TODO: este metodo va a necesitar tener cierta informacion de la textura 
   // como por ejemplo su dimension, de esta manera va a poder crear un 
   // rectangulo exacto del tamaño necesario para que no pierda calidad la imagen.
   void DrawSprite(const std::string& texture); //, // Esto podria ser un identificador para que sea mas rapido el acceso.
                                                // faltarian aca la posicion, el centro de la imagen, etc. revisar el proyecto de xbox 360 para tener una idea.
- protected:
-  /// \brief Method to release all the textures previously loaded.
-  void ReleaseTextures();
 
  private:
-  /// \brief Texture manager for the renderer.
-  TextureManager<GLuint> texture_manager_;
-
   DISALLOW_COPY_AND_ASSIGN(OpenGLRenderer);
 };
 

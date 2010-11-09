@@ -11,6 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="source\base\component.cpp" />
     <ClCompile Include="source\base\locator.cpp" />
     <ClCompile Include="source\collision_detection\bounding_box.cpp" />
     <ClCompile Include="source\cull\cull.cpp" />
@@ -32,12 +33,15 @@
     <ClCompile Include="source\renderer\opengl_mesh_renderer.cpp" />
     <ClCompile Include="source\renderer\opengl_renderer.cpp" />
     <ClCompile Include="source\renderer\renderer.cpp" />
+    <ClCompile Include="source\shader\shader.cpp" />
     <ClCompile Include="source\shadows\shadows.cpp" />
+    <ClCompile Include="source\texture\opengl_texture.cpp" />
     <ClCompile Include="source\texture\texture.cpp" />
     <ClCompile Include="source\texture\texture_manager.cpp" />
     <ClCompile Include="source\util\rand.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="source\base\component.h" />
     <ClInclude Include="source\base\locator.h" />
     <ClInclude Include="source\base\locator_inl.h" />
     <ClInclude Include="source\base\singleton.h" />
@@ -70,7 +74,10 @@
     <ClInclude Include="source\renderer\opengl_mesh_renderer.h" />
     <ClInclude Include="source\renderer\opengl_renderer.h" />
     <ClInclude Include="source\renderer\renderer.h" />
+    <ClInclude Include="source\shader\shader.h" />
     <ClInclude Include="source\shadows\shadows.h" />
+    <ClInclude Include="source\texture\null_texture.h" />
+    <ClInclude Include="source\texture\opengl_texture.h" />
     <ClInclude Include="source\texture\texture.h" />
     <ClInclude Include="source\texture\texture_manager.h" />
     <ClInclude Include="source\util\rand.h" />

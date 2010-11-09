@@ -52,8 +52,13 @@
 
 #include "base/locator_inl.h"
 
+#include "shader/shader.h"
+
 ////////////////////////////////////////////
 //// Pruebas para agregar las texturas ...
+
+// TODO: hacer que el objeto no desaparezca tan facilmente cuando no se detecta.
+
 
 DissertationProject::OpenGLRenderer renderer;
 
@@ -61,9 +66,22 @@ DissertationProject::OpenGLRenderer renderer;
 //DissertationProject::MeshObj mesh_test;
 boost::shared_ptr<DissertationProject::MeshObj> mesh_test;
 
+std::vector<boost::shared_ptr<DissertationProject::MeshObj> > mesh_list;
+
+bool use_mesh_list = false;
+
+void LoadMeshList();
+void DisplayMeshList();
+void ReleaseMeshList();
+
+//DissertationProject::Shader shader_test;
+boost::shared_ptr<DissertationProject::Shader> shader_test;
+
 /// Prueba para desplegar HUD.
 void RenderHUD();
 void RenderRotatingMesh();
+void RenderRotatingMesh2();
+void LoadData();
 ////////////////////////////////////////////
 
 
@@ -182,10 +200,10 @@ static void DrawCube(void)
 	const short cube_faces [6][4] = {
 	{3, 2, 1, 0}, {2, 3, 7, 6}, {0, 1, 5, 4}, {3, 0, 4, 7}, {1, 2, 6, 5}, {4, 5, 6, 7} };
 	
-    /*const GLfloat cube_textcoord [8][3] = {
-	{1.0, 1.0, 1.0}, {1.0, -1.0, 1.0}, {-1.0, -1.0, 1.0}, {-1.0, 1.0, 1.0},
-	{1.0, 1.0, -1.0}, {1.0, -1.0, -1.0}, {-1.0, -1.0, -1.0}, {-1.0, 1.0, -1.0} };
-	*/
+    //const GLfloat cube_textcoord [8][3] = {
+	//{1.0, 1.0, 1.0}, {1.0, -1.0, 1.0}, {-1.0, -1.0, 1.0}, {-1.0, 1.0, 1.0},
+	//{1.0, 1.0, -1.0}, {1.0, -1.0, -1.0}, {-1.0, -1.0, -1.0}, {-1.0, 1.0, -1.0} };
+	
    
 	if (!polyList) {
 		polyList = glGenLists (1);
@@ -319,6 +337,7 @@ static void cleanup(void)
 	arVideoClose();
 
   // To release all the resources.
+  ReleaseMeshList();
   DissertationProject::Locator::Release();
 }
 
@@ -496,8 +515,20 @@ static void Display(void)
 	// Lighting and geometry that moves with the camera should go here.
 	// (I.e. must be specified before viewing transformations.)
 	//none
-	
+
+    // parche para que el objeto nunca desaparezca
+	static GLdouble prev_m[16];
+
 	if (gPatt_found) {
+      arglCameraViewRH(gPatt_trans, m, VIEW_SCALEFACTOR);
+	  glLoadMatrixd(m);
+      memcpy(prev_m, m, sizeof(m));
+    } else {
+      glLoadMatrixd(prev_m);
+    }
+
+	//if (gPatt_found) {
+    if (true) {
 	
 		// Calculate the camera position relative to the marker.
 		// Replace VIEW_SCALEFACTOR with 1.0 to make one drawing unit equal to 1.0 ARToolKit units (usually millimeters).
@@ -506,19 +537,125 @@ static void Display(void)
 
 		// All lighting and geometry to be drawn relative to the marker goes here.
 		//DrawCube();
-    glEnable(GL_TEXTURE_2D);
-    glBindTexture(GL_TEXTURE_2D, 1);
+
+//////////////////////////////////////////////////
+////Definicion del material
+//// TODO: ver como funciona esto bien realmente.
+///
+
+GLfloat ambient[] = {0.1f, 0.1f, 0.1f};
+GLfloat diffuse[] = {0.8f, 0.8f, 0.8f};
+GLfloat specular[] = {0.7f, 0.7f, 0.7f};
+GLfloat emission[] = {0.0f, 0.0f, 0.0f};
+
+// Ver si deberia colocarlo solo en el front o en el back tambien.
+//glMaterialfv(GL_FRONT, GL_AMBIENT, ambient);
+//glMaterialfv(GL_FRONT, GL_DIFFUSE, diffuse);
+//glMaterialfv(GL_FRONT, GL_SPECULAR, specular);
+//glMaterialfv(GL_FRONT, GL_EMISSION, emission);
+
+//glEnable ( GL_COLOR_MATERIAL ) ;
+//glColorMaterial ( GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE ) ;
+/////////////////////////////////////////////////
+
+//glEnable(GL_LIGHTING);
+//glEnable(GL_LIGHT0);
+
+GLfloat ambientl[] = {0.0f, 0.0f, 0.0f, 1.0f};
+GLfloat diffusel[] = {1.0f, 1.0f, 1.0f, 1.0f};
+GLfloat specularl[] = {1.0f, 1.0f, 1.0f, 1.0f};
+//GLfloat attenuationl[] = {1.0f, 0.0f, 0.0f};
+GLfloat attenuationl[] = {0.1f, 0.0f, 0.0f};
+GLfloat positionl[] = {4, 4, 4, 1};
+
+  /*glLightfv(GL_LIGHT0, GL_AMBIENT, ambientl);
+  glLightfv(GL_LIGHT0, GL_DIFFUSE, diffusel);
+  glLightfv(GL_LIGHT0, GL_SPECULAR, specularl);
+  glLightfv(GL_LIGHT0, GL_POSITION, positionl);
+  glLightf(GL_LIGHT0, GL_CONSTANT_ATTENUATION, attenuationl[0]);
+  glLightf(GL_LIGHT0, GL_LINEAR_ATTENUATION, attenuationl[1]);
+  glLightf(GL_LIGHT0, GL_QUADRATIC_ATTENUATION, attenuationl[2]);
+*/
+
+
+boost::shared_ptr<DissertationProject::TextureManager> textures = DissertationProject::Locator::GetTextureManager();
+
+
+shader_test->enable();
+
+glActiveTexture(GL_TEXTURE0);
+//glEnable(GL_TEXTURE_2D);
+textures->EnableTexture("base_map");
+
+
+glActiveTexture(GL_TEXTURE1);
+//glEnable(GL_TEXTURE_CUBE_MAP_EXT);
+textures->EnableTexture("env_map");
+textures->EnableTexture("env");
+
+//glPushMatrix();
+
   glTranslatef(0, 0, 1);
-glScalef(2, 2, 2);
-mesh_test->drawSurface(0);
-    glBindTexture(GL_TEXTURE_2D, 0);
-    glDisable(GL_TEXTURE_2D);
-	
+
+if (use_mesh_list) glScalef(0.25, 0.25, 0.25);
+else glScalef(2, 2, 2);
+
+glRotatef(90, 1, 0, 0);
+
+shader_test->setUniform1i("BaseMap", 0);
+
+// para test 2
+shader_test->setUniform1i("DiffuseEnvMap", 1);
+shader_test->setUniform1i("SpecularEnvMap", 1);
+
+/// para sem.frag
+shader_test->setUniform1i("colorMap", 0);
+shader_test->setUniform1i("envMap", 1);
+
+/// para multitexturing
+shader_test->setUniform1i("myTexture1", 0);
+shader_test->setUniform1i("myTexture2", 1);
+
+// para cube_test.frag
+shader_test->setUniform1i("uCubeTexture", 1);
+
+DisplayMeshList();
+
+
+//glPopMatrix();
+
+    //glBindTexture(GL_TEXTURE_2D, 0);
+    //glDisable(GL_TEXTURE_2D);
+
+    //glBindTexture(GL_TEXTURE_CUBE_MAP_EXT, 0);
+    //glDisable(GL_TEXTURE_CUBE_MAP_EXT);
+    
+glActiveTexture(GL_TEXTURE1);
+glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+glDisable(GL_TEXTURE_CUBE_MAP);
+
+//glActiveTexture(GL_TEXTURE1);
+//glBindTexture(GL_TEXTURE_2D, 0);
+//glDisable(GL_TEXTURE_2D);
+
+glActiveTexture(GL_TEXTURE0);
+glBindTexture(GL_TEXTURE_2D, 0);
+glDisable(GL_TEXTURE_2D);
+
+shader_test->disable();	
+
+//glDisable(GL_LIGHT0);
+//glDisable(GL_LIGHTING);
+
 	} // gPatt_found
 	
 	// Any 2D overlays go here.
 	//none
 	
+
+  // prueba para pintar un skybox...
+  //RenderRotatingMesh2();
+
     ////////////////////////////////////
     /// NOTE: PRueba para pintar los HUD de la aplicacion.
     
@@ -528,7 +665,7 @@ mesh_test->drawSurface(0);
     // este valor deberia ser accessible desde cualquier punto de la aplicacion.
 
 
-    //RenderRotatingMesh();
+//    RenderRotatingMesh();
 
     /// Prueba para desplegar HUD del programa.
     RenderHUD();
@@ -542,16 +679,9 @@ int main(int argc, char** argv)
 {
     ///////////////////////////////////////////
     // NOTE: prueba para cargar las texturas //
-	
-    // Initialize the use of glew
-	glewInit();
-
-	
     // Initialize the services on the application.
     DissertationProject::Locator::Initilize();
-
-    //renderer.LoadTexture("../../media/textures/box.bmp");
-
+    DissertationProject::Locator::Register(boost::shared_ptr<DissertationProject::OpenGLRenderer> (new DissertationProject::OpenGLRenderer()));
     ///////////////////////////////////////////
 
 
@@ -616,32 +746,128 @@ int main(int argc, char** argv)
 	glutVisibilityFunc(Visibility);
 	glutKeyboardFunc(Keyboard);
 	
-
-    renderer.LoadTexture("../../media/textures/box.bmp");
-    //renderer.LoadTexture("../../media/textures/logo2.png");
-
-    // TODO: crear una variable global que defina el path de la aplicacion actual.
-
-    mesh_test = boost::shared_ptr<DissertationProject::MeshObj> (new DissertationProject::MeshObj());
-    mesh_test->Load("../../media/mesh/cube.obj");
-
-
     
+    // NOTE: glew debe ser inicializado despues de inicializar glut
+    // Initialize the use of glew
+	if (GLEW_OK != glewInit()) 
+       printf("glewinit fail!.\n");
 
-boost::shared_ptr<DissertationProject::Renderer>& rend = 
-    DissertationProject::Locator::GetRenderer();
-
-  ///  rend->LoadTexture("");
-
-    DissertationProject::Locator::Register(boost::shared_ptr<DissertationProject::Renderer> ());
-
+    // Load the data related to the application.
+    LoadData();
 
 	glutMainLoop();
+}
 
-int ii;
-scanf("%d", &ii);
-	return (0);
+void LoadData() {
+  //////////////////////////////////////////////
+  //// Pruebas para cargar las texturas.
+  //renderer.LoadTexture("../../media/textures/skin.tif");
+  //renderer.LoadTexture("../../media/textures/box.bmp");
+  //renderer.LoadTexture("../../media/textures/logo2.png");
+  //renderer.LoadTexture("../../media/textures/uffizi_probe.hdr");
+  //renderer.LoadTexture("../../media/textures/cube/cube_face_posx.bmp");
+  //renderer.LoadCubeTexture("../../media/textures/..");
 
+  boost::shared_ptr<DissertationProject::TextureManager> textures = DissertationProject::Locator::GetTextureManager();
+  textures->RegisterTexture2D("base_map", "../../media/textures/box.bmp");
+  //textures->RegisterTexture2D("base_map", "../../media/textures/skin.tif");
+  textures->RegisterTexture2D("logo", "../../media/textures/logo2.png");
+  textures->RegisterTexture2D("env", "../../media/textures/env.jpg");
+
+  textures->RegisterTextureCubeMap("env_map", "../../media/textures/cube2/opensea.png");
+  //textures->RegisterTextureCubeMap("env_map", "../../media/textures/cube/cube_face.bmp");
+
+
+  //////////////////////////////////////////////
+  //// Pruebas para cargar los meshes.
+  // TODO: crear una variable global que defina el path de la aplicacion actual.
+  mesh_test = boost::shared_ptr<DissertationProject::MeshObj> (new DissertationProject::MeshObj());
+  //mesh_test->Load("../../media/mesh/cube.obj");
+  mesh_test->Load("../../media/mesh/sphere.obj");
+  //mesh_test->Load("../../media/mesh/apple.obj");
+  //mesh_test->Load("../../media/mesh/bigguy.obj");
+  LoadMeshList();
+
+
+  //////////////////////////////////////////////
+  //// Pruebas para cargar los shaders.
+  shader_test = boost::shared_ptr<DissertationProject::Shader> (new DissertationProject::Shader());
+   
+  //shader_test->openVertexP("../../media/shaders/test.vert");
+  //shader_test->openFragmentP("../../media/shaders/test.frag");
+
+  //shader_test->openVertexP("../../media/shaders/test2.vert");
+  //shader_test->openFragmentP("../../media/shaders/test2.frag");
+
+  //shader_test->openVertexP("../../media/shaders/test3.vert");
+  //shader_test->openFragmentP("../../media/shaders/test3.frag");
+
+  //shader_test->openVertexP("../../media/shaders/point_light.vert");
+  //shader_test->openFragmentP("../../media/shaders/point_light.frag");
+
+  //shader_test->openVertexP("../../media/shaders/toon_shading.vert");
+  //shader_test->openFragmentP("../../media/shaders/toon_shading.frag");
+
+  //shader_test->openVertexP("../../media/shaders/texture_light.vert");
+  //shader_test->openFragmentP("../../media/shaders/texture_light.frag");
+
+  shader_test->openVertexP("../../media/shaders/sem.vert");
+  shader_test->openFragmentP("../../media/shaders/sem.frag");
+
+  //shader_test->openVertexP("../../media/shaders/light1.vert");
+  //shader_test->openFragmentP("../../media/shaders/light1.frag");
+
+  //shader_test->openVertexP("../../media/shaders/multitexturing.vert");
+  //shader_test->openFragmentP("../../media/shaders/multitexturing.frag");
+
+  //shader_test->openVertexP("../../media/shaders/cube_test.vert");
+  //shader_test->openFragmentP("../../media/shaders/cube_test.frag");
+
+  shader_test->load();
+
+
+  // TODO: recordar colocar este chequeo en los shaders!!.
+  //if (glCreateShaderObjectARB == 0)
+  //  printf("Error: shader\n");
+}
+
+void RenderRotatingMesh2() {
+    glLoadIdentity();
+    
+shader_test->enable();
+
+shader_test->setUniform1i("uCubeTexture", 1);
+
+glActiveTexture(GL_TEXTURE0);
+glBindTexture(GL_TEXTURE_2D, 1);
+
+glActiveTexture(GL_TEXTURE1);
+glBindTexture(GL_TEXTURE_CUBE_MAP, 2);
+
+    glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    //glTranslatef(1.2, -0.8, -5);
+//glTranslatef(0, 0, -5);
+
+    static float rot = 0;
+    rot += 5;
+    //glRotatef(rot, 0, 1, 0);
+    //glRotatef(180, 0, 0, 1);
+
+   glScalef(50, 50, 50);
+    
+    mesh_test->drawSurface(0);
+
+    glDisable(GL_BLEND);
+
+glActiveTexture(GL_TEXTURE1);
+glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+
+glActiveTexture(GL_TEXTURE0);
+glBindTexture(GL_TEXTURE_2D, 0);
+
+shader_test->disable();	
 }
 
 void RenderRotatingMesh() {
@@ -673,8 +899,15 @@ void RenderRotatingMesh() {
 
 /// Test to render a HUD...
 void RenderHUD() {
+
+boost::shared_ptr<DissertationProject::TextureManager> textures = DissertationProject::Locator::GetTextureManager();
+
+//shader_test->enable();
+
     glEnable(GL_TEXTURE_2D);
-    glBindTexture(GL_TEXTURE_2D, 1);
+//    glBindTexture(GL_TEXTURE_2D, 1);
+    //textures->EnableTexture("logo");
+    textures->EnableTexture("env");
 
     glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -706,8 +939,41 @@ void RenderHUD() {
 
     glBindTexture(GL_TEXTURE_2D, 0);
     glDisable(GL_TEXTURE_2D);
+
+//shader_test->disable();
+
 }
 
+void LoadMeshList() {
+  if (!use_mesh_list) return;
+  for (int i = 0; i <= 20; ++i) {
+    boost::shared_ptr<DissertationProject::MeshObj> temp =
+        boost::shared_ptr<DissertationProject::MeshObj> (new DissertationProject::MeshObj());
+    char buffer[100]; sprintf(buffer, "../../media/mesh/bigguy/bigguy_%02d.obj", i);
+    temp->Load(buffer);
+    mesh_list.push_back(temp);
+  }
+}
+
+void ReleaseMeshList() {
+  const int kNumberOfMeshes = static_cast<int> (mesh_list.size());
+  for (int i = 0; i < kNumberOfMeshes; ++i) mesh_list[i].reset();
+  mesh_list.clear();
+}
+
+void DisplayMeshList() {
+  if (use_mesh_list) {
+    static int frame = 0, cnt = 0, dir = 1; 
+    if (cnt == 1) { 
+      frame = frame + dir, cnt = 0;
+      if (frame == 0 || frame == 20) dir *= -1;
+    }
+    mesh_list[frame]->drawSurface(0);
+    cnt++;
+  } else {
+    mesh_test->drawSurface(0);
+  }
+}
 
 /*
 #include "cstdio"
@@ -718,3 +984,5 @@ int main() {
   return 0;
 }
 */
+
+

@@ -43,7 +43,7 @@ class Locator {
 
   /// \brief Method to register the Texture Manager of the application.
   /// \param[in] texture_manager Texture Manager for the application.
-  inline static void Register(const boost::shared_ptr<TextureManager<int> >& texture_manager);
+  inline static void Register(const boost::shared_ptr<TextureManager>& texture_manager);
   
   /// \brief Method to have access to the renderer of the application.
   /// \return A Renderer that define the current renderer of the application.
@@ -55,7 +55,7 @@ class Locator {
 
   /// \brief Method to have access to the texture manager of the application.
   /// \return A TextureManager that define the current texture manager of the application.
-  inline static boost::shared_ptr<TextureManager<int> >& GetTextureManager();
+  inline static boost::shared_ptr<TextureManager>& GetTextureManager();
 
  private:
   /// \brief Renderer service.
@@ -65,7 +65,7 @@ class Locator {
   static boost::shared_ptr<MeshManager> mesh_manager_;
 
   /// \brief Texture Manager service.
-  static boost::shared_ptr<TextureManager<int> > texture_manager_;
+  static boost::shared_ptr<TextureManager> texture_manager_;
 
   DISALLOW_COPY_AND_ASSIGN(Locator);
 };

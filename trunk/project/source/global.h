@@ -4,7 +4,6 @@
 /// \version 1.0
 ///
 /// \brief This file contain some macros of general purpose for the application.
-
 #ifndef GLOBAL_H__
 #define GLOBAL_H__
 

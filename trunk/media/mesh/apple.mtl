@@ -1,0 +1,24 @@
+# 
+# Wavefront material file
+# Converted by 3D Exploration 1.833
+# XDimension Software, LLC
+# http://www.xdsoft.com/explorer/
+# 
+newmtl material__13
+	 Ka 0.0944123 0.190751 0.333333
+	# Kd 0.192157 0.388235 0.678431
+       Kd 1 1 1
+	 Ks 0.044902 0.044902 0.044902
+	 illum 2
+	 Ns 6
+       d 1
+	 map_Kd ../Textures/skin.tif
+     # map_Kd ../Textures/bloom.jpg
+newmtl material__14
+	 Ka 0.211765 0.0628877 0.123209
+	 Kd 0.647059 0.192157 0.376471
+	 Ks 0.044902 0.044902 0.044902
+	 illum 2
+	 Ns 6
+       d 1
+       map_Kd ../Textures/stem_color.tif

@@ -16,7 +16,7 @@ BEGIN_PROJECT_NAMESPACE();
 void Locator::Initilize() {
   renderer_ = boost::shared_ptr<Renderer> (new NullRenderer());
   mesh_manager_ = boost::shared_ptr<MeshManager> (new MeshManager());
-  texture_manager_ = boost::shared_ptr<TextureManager<int> > (new TextureManager<int>());
+  texture_manager_ = boost::shared_ptr<TextureManager> (new TextureManager());
 }
 
 void Locator::Release() {
@@ -34,7 +34,7 @@ void Locator::Register(const boost::shared_ptr<MeshManager>& mesh_manager) {
   mesh_manager_ = mesh_manager;
 }
 
-void Locator::Register(const boost::shared_ptr<TextureManager<int> >& texture_manager) {
+void Locator::Register(const boost::shared_ptr<TextureManager>& texture_manager) {
   texture_manager_ = texture_manager;
 }
 
@@ -46,7 +46,7 @@ boost::shared_ptr<MeshManager>& Locator::GetMeshManager() {
   return mesh_manager_;
 }
 
-boost::shared_ptr<TextureManager<int> >& Locator::GetTextureManager() {
+boost::shared_ptr<TextureManager>& Locator::GetTextureManager() {
   return texture_manager_;
 }
 
