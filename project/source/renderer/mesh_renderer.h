@@ -9,11 +9,15 @@
 #ifndef MESH_RENDERER_H__
 #define MESH_RENDERER_H__
 
+// TODO: ver lo de las SuperComponent class, para 
+// TODO: hacer que herede de una clase component!!!.
+
 #include "global.h"
+#include "base/component.h"
 
 BEGIN_PROJECT_NAMESPACE();
 
-class MeshRenderer {
+class MeshRenderer : public Component {
  public:
   /// \brief Standard constructor.
   MeshRenderer();
@@ -21,10 +25,10 @@ class MeshRenderer {
   /// \brief Default destructor.
   virtual ~MeshRenderer();
 
-  /// \brief Method to initialize the services.
+  /// \brief Method to initialize the mesh renderer.
   virtual void Initialize() = 0;
    
-  /// \brief Method to release all the services.
+  /// \brief Method to release the resources used.
   virtual void Release() = 0;
 
   /// \brief Method to render the mesh.

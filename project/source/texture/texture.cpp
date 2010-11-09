@@ -9,4 +9,8 @@
 
 BEGIN_PROJECT_NAMESPACE();
 
+Texture::Texture() : width_(0), height_(0) { }
+
+Texture::~Texture() { }
+
 END_PROJECT_NAMESPACE();

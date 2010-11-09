@@ -1,9 +1,48 @@
-﻿Build started 8/8/2010 4:44:45 PM.
-     1>Project "C:\Users\Avalon\Desktop\Project\Project\Project.vcxproj" on node 2 (clean target(s)).
-     1>_PrepareForClean:
-         Deleting file "C:\Users\Avalon\Desktop\Project\Project\..\bin\_intermediate\Release\Project.lastbuildstate".
-     1>Done Building Project "C:\Users\Avalon\Desktop\Project\Project\Project.vcxproj" (clean target(s)).
+﻿Build started 11/2/2010 7:56:32 PM.
+     1>Project "C:\Users\Avalon\Desktop\arlight client\project\Project.vcxproj" on node 2 (build target(s)).
+     1>InitializeBuildStatus:
+         Creating "C:\Users\Avalon\Desktop\arlight client\project\..\bin\_intermediate\Release\Project.unsuccessfulbuild" because "AlwaysCreate" was specified.
+       ClCompile:
+         C:\Program Files (x86)\Apps\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /I.\source /I.\include\freeimage /IC:\ARToolKit\include /I.\include\fmod /I"C:\Program Files (x86)\Apps\NVIDIA Corporation\NVIDIA PhysX SDK\v2.8.1\SDKs/Physics/include" /I"C:\Program Files (x86)\Apps\NVIDIA Corporation\NVIDIA PhysX SDK\v2.8.1\SDKs/Foundation/include" /I"C:\Program Files (x86)\Apps\NVIDIA Corporation\NVIDIA PhysX SDK\v2.8.1\SDKs/PhysXLoader/include" /I"C:\Program Files (x86)\Apps\NVIDIA Corporation\NVIDIA PhysX SDK\v2.8.1\SDKs/Cooking/include" /I.\include\gl /I"C:\Program Files (x86)\Apps\boost\boost-1.40.0" /Zi /nologo /W3 /WX- /O2 /Oi /Oy- /GL /D WIN32 /D NDEBUG /D _WINDOWS /D NOMINMAX /D BOOST_LIB_DIAGNOSTIC /D BOOST_ALL_DYN_LINK /D BOOST_USE_WINDOWS_H /D _MBCS /Gm- /EHsc /MT /GS /Gy /fp:precise /Zc:wchar_t /Zc:forScope /Fo"C:\Users\Avalon\Desktop\arlight client\project\..\bin\_intermediate\Release\\" /Fd"C:\Users\Avalon\Desktop\arlight client\project\..\bin\_intermediate\Release\vc100.pdb" /Gd /TP /wd4180 /wd4996 /analyze- /errorReport:prompt source\main.cpp
+         main.cpp
+       Link:
+         C:\Program Files (x86)\Apps\Microsoft Visual Studio 10.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\Avalon\Desktop\arlight client\project\..\bin\Release\Project.exe" /NOLOGO /LIBPATH:.\lib\freeimage /LIBPATH:C:\ARToolKit\lib /LIBPATH:.\lib\fmod /LIBPATH:"C:\Program Files (x86)\Apps\NVIDIA Corporation\NVIDIA PhysX SDK\v2.8.1\SDKs/lib/Win32" /LIBPATH:.\lib\gl /LIBPATH:"C:\Program Files (x86)\Apps\boost\boost-1.40.0/lib" FreeImage.lib libAR.lib libARgsub_lite.lib libARvideo.lib fmodex_vc.lib PhysXLoader.lib glut32.lib glew32.lib opengl32.lib glu32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /ManifestFile:"C:\Users\Avalon\Desktop\arlight client\project\..\bin\_intermediate\Release\Project.exe.intermediate.manifest" /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /DEBUG /PDB:"C:\Users\Avalon\Desktop\arlight client\bin\Release\Project.pdb" /OPT:REF /OPT:ICF /LTCG /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\Avalon\Desktop\arlight client\project\..\bin\Release\Project.lib" /MACHINE:X86 "C:\Users\Avalon\Desktop\arlight client\project\..\bin\_intermediate\Release\component.obj"
+         "C:\Users\Avalon\Desktop\arlight client\project\..\bin\_intermediate\Release\locator.obj"
+         "C:\Users\Avalon\Desktop\arlight client\project\..\bin\_intermediate\Release\bounding_box.obj"
+         "C:\Users\Avalon\Desktop\arlight client\project\..\bin\_intermediate\Release\cull.obj"
+         "C:\Users\Avalon\Desktop\arlight client\project\..\bin\_intermediate\Release\frustum_culling.obj"
+         "C:\Users\Avalon\Desktop\arlight client\project\..\bin\_intermediate\Release\game_state.obj"
+         "C:\Users\Avalon\Desktop\arlight client\project\..\bin\_intermediate\Release\game_state_manager.obj"
+         "C:\Users\Avalon\Desktop\arlight client\project\..\bin\_intermediate\Release\light.obj"
+         "C:\Users\Avalon\Desktop\arlight client\project\..\bin\_intermediate\Release\main.obj"
+         "C:\Users\Avalon\Desktop\arlight client\project\..\bin\_intermediate\Release\material.obj"
+         "C:\Users\Avalon\Desktop\arlight client\project\..\bin\_intermediate\Release\vec3.obj"
+         "C:\Users\Avalon\Desktop\arlight client\project\..\bin\_intermediate\Release\vec4.obj"
+         "C:\Users\Avalon\Desktop\arlight client\project\..\bin\_intermediate\Release\face.obj"
+         "C:\Users\Avalon\Desktop\arlight client\project\..\bin\_intermediate\Release\group.obj"
+         "C:\Users\Avalon\Desktop\arlight client\project\..\bin\_intermediate\Release\mesh.obj"
+         "C:\Users\Avalon\Desktop\arlight client\project\..\bin\_intermediate\Release\mesh_manager.obj"
+         "C:\Users\Avalon\Desktop\arlight client\project\..\bin\_intermediate\Release\mesh_obj.obj"
+         "C:\Users\Avalon\Desktop\arlight client\project\..\bin\_intermediate\Release\hud.obj"
+         "C:\Users\Avalon\Desktop\arlight client\project\..\bin\_intermediate\Release\mesh_renderer.obj"
+         "C:\Users\Avalon\Desktop\arlight client\project\..\bin\_intermediate\Release\opengl_mesh_renderer.obj"
+         "C:\Users\Avalon\Desktop\arlight client\project\..\bin\_intermediate\Release\opengl_renderer.obj"
+         "C:\Users\Avalon\Desktop\arlight client\project\..\bin\_intermediate\Release\renderer.obj"
+         "C:\Users\Avalon\Desktop\arlight client\project\..\bin\_intermediate\Release\shader.obj"
+         "C:\Users\Avalon\Desktop\arlight client\project\..\bin\_intermediate\Release\shadows.obj"
+         "C:\Users\Avalon\Desktop\arlight client\project\..\bin\_intermediate\Release\texture.obj"
+         "C:\Users\Avalon\Desktop\arlight client\project\..\bin\_intermediate\Release\texture_manager.obj"
+         "C:\Users\Avalon\Desktop\arlight client\project\..\bin\_intermediate\Release\rand.obj"
+         Generating code
+         Finished generating code
+         Project.vcxproj -> C:\Users\Avalon\Desktop\arlight client\project\..\bin\Release\Project.exe
+       Manifest:
+         C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\bin\mt.exe /nologo /verbose /outputresource:"C:\Users\Avalon\Desktop\arlight client\project\..\bin\Release\Project.exe;#1" /manifest "C:\Users\Avalon\Desktop\arlight client\project\..\bin\_intermediate\Release\Project.exe.intermediate.manifest"
+       FinalizeBuildStatus:
+         Deleting file "C:\Users\Avalon\Desktop\arlight client\project\..\bin\_intermediate\Release\Project.unsuccessfulbuild".
+         Touching "C:\Users\Avalon\Desktop\arlight client\project\..\bin\_intermediate\Release\Project.lastbuildstate".
+     1>Done Building Project "C:\Users\Avalon\Desktop\arlight client\project\Project.vcxproj" (build target(s)).
 
 Build succeeded.
 
-Time Elapsed 00:00:00.01
+Time Elapsed 00:00:02.89

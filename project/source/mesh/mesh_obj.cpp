@@ -279,6 +279,7 @@ void MeshObj::process() {
 		const int nVertex = static_cast<int> (groupList[i].vertexList.size());
 		// Translate and scale the vertex of the group i
 		for(int j = 0; j < nVertex; ++j) {
+// NOTE: ver como eliminar esta operacion de aca y mantener el resto de cosas funcionando.
 			groupList[i].vertexList[j] -= center;
 			groupList[i].vertexList[j] *= maxDistance;
 		}

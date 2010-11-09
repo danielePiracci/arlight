@@ -91,6 +91,12 @@
     <Filter Include="Source Files\base">
       <UniqueIdentifier>{1804354f-e8d2-4069-bafa-0cda8b78ad07}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\shader">
+      <UniqueIdentifier>{bdb518e3-57f4-4a17-955c-7e08ef9bba77}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\shader">
+      <UniqueIdentifier>{ded26322-3941-4bcc-a850-992b7ae15a05}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\main.cpp">
@@ -167,6 +173,15 @@
     </ClCompile>
     <ClCompile Include="source\renderer\opengl_mesh_renderer.cpp">
       <Filter>Source Files\renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="source\shader\shader.cpp">
+      <Filter>Source Files\shader</Filter>
+    </ClCompile>
+    <ClCompile Include="source\base\component.cpp">
+      <Filter>Source Files\base</Filter>
+    </ClCompile>
+    <ClCompile Include="source\texture\opengl_texture.cpp">
+      <Filter>Source Files\texture</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -280,6 +295,18 @@
     </ClInclude>
     <ClInclude Include="source\renderer\opengl_mesh_renderer.h">
       <Filter>Header Files\renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="source\shader\shader.h">
+      <Filter>Header Files\shader</Filter>
+    </ClInclude>
+    <ClInclude Include="source\base\component.h">
+      <Filter>Header Files\base</Filter>
+    </ClInclude>
+    <ClInclude Include="source\texture\opengl_texture.h">
+      <Filter>Header Files\texture</Filter>
+    </ClInclude>
+    <ClInclude Include="source\texture\null_texture.h">
+      <Filter>Header Files\texture</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

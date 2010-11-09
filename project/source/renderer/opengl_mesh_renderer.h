@@ -23,10 +23,10 @@ class OpenGLMeshRenderer : public MeshRenderer {
   /// \brief Default destructor.
   ~OpenGLMeshRenderer();
 
-  /// \brief Method to initialize the services.
+  /// \brief Method to initialize the mesh renderer.
   virtual void Initialize();
    
-  /// \brief Method to release all the services.
+  /// \brief Method to release all the resources used.
   virtual void Release();
 
   /// \brief Method to render the mesh.

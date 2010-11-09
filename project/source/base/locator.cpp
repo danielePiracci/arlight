@@ -11,7 +11,7 @@ BEGIN_PROJECT_NAMESPACE();
 
 boost::shared_ptr<Renderer> Locator::renderer_;
 boost::shared_ptr<MeshManager> Locator::mesh_manager_;
-boost::shared_ptr<TextureManager<int> > Locator::texture_manager_;
+boost::shared_ptr<TextureManager> Locator::texture_manager_;
 
 Locator::Locator() { }
 
