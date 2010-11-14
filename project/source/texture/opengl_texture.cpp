@@ -119,8 +119,8 @@ void OpenGLTexture::CreateCubeTextureFromFile(const std::string& file_path) {
     GLenum cubeFaces[6] = {
       GL_TEXTURE_CUBE_MAP_POSITIVE_X_EXT,
       GL_TEXTURE_CUBE_MAP_NEGATIVE_X_EXT,
-      GL_TEXTURE_CUBE_MAP_NEGATIVE_Y_EXT,
       GL_TEXTURE_CUBE_MAP_POSITIVE_Y_EXT,
+      GL_TEXTURE_CUBE_MAP_NEGATIVE_Y_EXT,
       GL_TEXTURE_CUBE_MAP_POSITIVE_Z_EXT,
       GL_TEXTURE_CUBE_MAP_NEGATIVE_Z_EXT,
     };
@@ -145,8 +145,26 @@ void OpenGLTexture::CreateCubeTextureFromFile(const std::string& file_path) {
   Disable();
 }
 
-void OpenGLTexture::CreateTextureFromMemory() {
+void OpenGLTexture::CreateTextureFromMemory(int width, int height, void* pixels, bool depth_texture) {
+  texture_type_ = GL_TEXTURE_2D;  
+  
+  width_ = width;
+  height_ = height;
 
+  Enable();
+
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);  
+  
+  if (depth_texture)
+    //glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, width_, height_, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, pixels);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, width_, height_, 0, GL_DEPTH_COMPONENT, GL_FLOAT, pixels);
+  else 
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width_, height_, 0, GL_BGRA, GL_UNSIGNED_BYTE, pixels);
+
+  Disable(); 
 }
 
 void OpenGLTexture::Enable() {

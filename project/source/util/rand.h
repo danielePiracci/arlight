@@ -6,7 +6,6 @@
 #define UTIL_RAND_H__
 
 #include "global.h"
-#include "stdlib.h"
 
 // TODO: colocar esto dentro de un namespace util.
 

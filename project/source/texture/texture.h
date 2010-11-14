@@ -44,7 +44,7 @@ class Texture {
   virtual void CreateCubeTextureFromFile(const std::string& file_path) = 0;
 
   ///
-  virtual void CreateTextureFromMemory() = 0;
+  virtual void CreateTextureFromMemory(int width, int height, void* pixels, bool depth_texture = false) = 0;
 
   virtual void Enable() = 0;
 

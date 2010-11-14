@@ -183,6 +183,12 @@
     <ClCompile Include="source\texture\opengl_texture.cpp">
       <Filter>Source Files\texture</Filter>
     </ClCompile>
+    <ClCompile Include="source\renderer\frame_buffer.cpp">
+      <Filter>Source Files\renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="source\util\string.cpp">
+      <Filter>Source Files\util</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\global.h">
@@ -307,6 +313,9 @@
     </ClInclude>
     <ClInclude Include="source\texture\null_texture.h">
       <Filter>Header Files\texture</Filter>
+    </ClInclude>
+    <ClInclude Include="source\renderer\frame_buffer.h">
+      <Filter>Header Files\renderer</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

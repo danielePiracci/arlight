@@ -32,11 +32,15 @@ class OpenGLTexture : public Texture {
   virtual void CreateCubeTextureFromFile(const std::string& file_path);
 
   ///
-  virtual void CreateTextureFromMemory();
+  virtual void CreateTextureFromMemory(int width, int height, void* pixels, bool depth_texture = false);
 
   virtual void Enable(); // should be inline
 
   virtual void Disable(); // should be inline
+
+  /// \brief Accessor to the texture name.
+  /// \return A GLuint with the texture name.
+  inline GLuint TextureName() const { return texture_name_; }
 
  private:
   

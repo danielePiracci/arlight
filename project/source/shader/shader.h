@@ -34,8 +34,10 @@ class Shader {
 	GLhandleARB hFragment;	//handle del fragment program
 	GLhandleARB hProgram;	//handle del program
 	
-	char vertexP[2048];		//vertex program
-	char fragmentP[2048];	//fragment program
+	//char vertexP[2048];		//vertex program
+	//char fragmentP[2048];	//fragment program
+    char vertexP[4096];		//vertex program
+	char fragmentP[4096];	//fragment program
 	
 	char vPath[256];		//ruta donde esta el programa del vertex shader
 	char fPath[256];		//ruta donde esta el programa del fragment shader
@@ -83,6 +85,12 @@ class Shader {
 
 	void setUniform3fv(char *name, float v[]);
 	void setUniform4fv(char *name, float v[]);
+
+    void setUniform2fv(char *name, int count, float v[]);
+    void setUniform4fv(char *name, int count, float v[]);
+
+    void setUniformMatrix4fv(char *name, float m[], bool transpose = false);
+   
 
 	void setAttrib1f(char *name, const float &x);
 	void setAttrib3f(char *name, const vec3f &v);

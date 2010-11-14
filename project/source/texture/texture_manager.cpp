@@ -33,8 +33,18 @@ void TextureManager::RegisterTexture2D(const std::string& name, const std::strin
     boost::shared_ptr<Texture> texture = Locator::GetRenderer()->GetNewTexture();
     texture->CreateTextureFromFile(file_path);
     textures_by_path_[file_path] = texture;
-    textures_by_name_[name] = texture;
+
+  // Check if exist a name already defined.
+  } else if (textures_by_name_.find(name) != textures_by_name_.end()) {
+     printf("Texture name redefined!\n");
   }
+  textures_by_name_[name] = textures_by_path_[file_path];
+}
+
+void TextureManager::RegisterTexture2D(const std::string& name, int width, int height, void* pixels, bool depth_texture) {
+  boost::shared_ptr<Texture> texture = Locator::GetRenderer()->GetNewTexture();
+  texture->CreateTextureFromMemory(width, height, pixels, depth_texture);
+  textures_by_name_[name] = texture;
 }
 
 void TextureManager::RegisterTextureCubeMap(const std::string& name, const std::string& file_path) {
@@ -45,6 +55,11 @@ void TextureManager::RegisterTextureCubeMap(const std::string& name, const std::
     textures_by_path_[file_path] = texture;
     textures_by_name_[name] = texture;
   }
+}
+
+boost::shared_ptr<Texture> TextureManager::GetTexture(const std::string& name) const {
+  std::map<std::string, boost::shared_ptr<Texture> >::const_iterator it = textures_by_name_.find(name);
+  return it == textures_by_name_.end() ? boost::shared_ptr<Texture>(new NullTexture()) : it->second;
 }
 
 END_PROJECT_NAMESPACE();

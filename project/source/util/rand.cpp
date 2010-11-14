@@ -4,6 +4,8 @@
 /// \version 1.0
 #include "util/rand.h"
 
+#include "stdlib.h"
+
 BEGIN_PROJECT_NAMESPACE();
 
 float Rand(float min_range, float max_range) {

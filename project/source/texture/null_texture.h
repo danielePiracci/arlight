@@ -29,7 +29,7 @@ class NullTexture : public Texture {
   virtual void CreateCubeTextureFromFile(const std::string& file_path) { }
 
   ///
-  virtual void CreateTextureFromMemory() { }
+  virtual void CreateTextureFromMemory(int width, int height, void* pixels, bool depth_texture = false) { }
 
   virtual void Enable() { }
 
