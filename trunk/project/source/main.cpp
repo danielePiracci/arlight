@@ -54,6 +54,10 @@
 
 #include "shader/shader.h"
 
+#include "renderer/frame_buffer.h"
+
+#include "ctime"
+
 ////////////////////////////////////////////
 //// Pruebas para agregar las texturas ...
 
@@ -76,12 +80,33 @@ void ReleaseMeshList();
 
 //DissertationProject::Shader shader_test;
 boost::shared_ptr<DissertationProject::Shader> shader_test;
+boost::shared_ptr<DissertationProject::Shader> convolution_shader;
+
+// Prueba para hacer render to texture.
+boost::shared_ptr<DissertationProject::FrameBuffer> frame_buffer;
+void RenderToTexture();
+
+// Prueba para generar el heiht map.
+boost::shared_ptr<DissertationProject::Shader> grayscale_shader;
+boost::shared_ptr<DissertationProject::FrameBuffer> grayscale_framebuffer;
+void RenderGrayscaleToTexture();
+
+// Prueba para calcular el normal map.
+boost::shared_ptr<DissertationProject::Shader> normalmap_shader;
+boost::shared_ptr<DissertationProject::FrameBuffer> normalmap_framebuffer;
+void RenderNormalMapToTexture();
+
+
+// Prueba para capturar la esfera.
+boost::shared_ptr<DissertationProject::FrameBuffer> camera_framebuffer;
+void RenderCameraToTexture();
 
 /// Prueba para desplegar HUD.
 void RenderHUD();
 void RenderRotatingMesh();
 void RenderRotatingMesh2();
 void LoadData();
+void RenderConvolution();
 ////////////////////////////////////////////
 
 
@@ -339,6 +364,18 @@ static void cleanup(void)
   // To release all the resources.
   ReleaseMeshList();
   DissertationProject::Locator::Release();
+
+  // Delete shaders.
+  // TODO: tener un shader manager, de tal manera de poder eliminarlos todos facilmetne.
+  shader_test.reset();
+  convolution_shader.reset();
+  grayscale_shader.reset();
+  normalmap_shader.reset();
+
+  frame_buffer.reset();
+  grayscale_framebuffer.reset();
+  normalmap_framebuffer.reset();
+  camera_framebuffer.reset();
 }
 
 static void Keyboard(unsigned char key, int x, int y)
@@ -454,8 +491,9 @@ static void mainLoop(void)
 		}
 		
 		// Tell GLUT the display has changed.
-		glutPostRedisplay();
+		//glutPostRedisplay();
 	}
+glutPostRedisplay();
 }
 
 //
@@ -488,11 +526,75 @@ static void Reshape(int w, int h)
 	// Call through to anyone else who needs to know about window sizing here.
 }
 
+
+void CalculateFps() {
+  static clock_t last = clock();
+  static int fps = 0;
+
+  clock_t current = clock();
+  if (current - last >= 1000) {
+    printf("FPS: %d\n", fps);
+    fps = 0;
+    last = current;
+  }
+  fps++;
+}
+
 //
 // This function is called when the window needs redrawing.
 //
-static void Display(void)
-{
+static void Display(void) {
+  // TODO: crear una clase timer para poder hacer pruebas de cuanto se demora ciertas 
+  // tareas en mi codigo, luego utilizar estos logs en el documento que escriba.
+
+  // NOTE: recordar que voy a cambiar la funcion de visibility para poder hacer cosas en tiempo real.
+  // pero de alguna manera tengo que controlar que lo que mando a pintar solo debe ser actualizado 
+  // con esa ultima imagen que fue capturada, por lo que podria meter eso uno de mis frame buffers.
+
+/*
+  glDrawBuffer(GL_BACK);
+CalculateFps();
+glutSwapBuffers();
+
+return;
+*/
+
+/*
+  glMatrixMode(GL_PROJECTION);
+  glLoadIdentity();
+  gluPerspective(45, 640.0 / 480.0, 0.01, 100);
+  //glOrtho(0, 640, 0, 480, -1.0, 1.0);
+  glMatrixMode(GL_MODELVIEW);
+  glLoadIdentity();
+
+  glClearColor(0.0, 0.0, 0.0, 1.0);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+  RenderToTexture();
+
+  glLoadIdentity();
+  glColor4f(1, 1, 1, 1.0f);
+  glTranslatef(0, 0, -4);
+  static float angle = 0;
+  angle += 2;
+  glRotatef(angle, 1, 1, 0);
+
+  glEnable(GL_TEXTURE_2D);
+  glBindTexture(GL_TEXTURE_2D, 1);
+
+  DisplayMeshList();
+
+  glBindTexture(GL_TEXTURE_2D, 0);
+  glDisable(GL_TEXTURE_2D);
+
+  glutSwapBuffers();
+
+
+  CalculateFps();
+
+return;
+*/
+
     GLdouble p[16];
 	GLdouble m[16];
 	
@@ -502,7 +604,13 @@ static void Display(void)
 	
 	arglDispImage(gARTImage, &gARTCparam, 1.0, gArglSettings);	// zoom = 1.0.
 	arVideoCapNext();
-	gARTImage = NULL; // Image data is no longer valid after calling arVideoCapNext().
+
+    // Prueba para guardar la imagen.
+    camera_framebuffer->Bind();
+    glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, 640, 480);
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+//	gARTImage = NULL; // Image data is no longer valid after calling arVideoCapNext().
 				
 	// Projection transformation.
 	arglCameraFrustumRH(&gARTCparam, VIEW_DISTANCE_MIN, VIEW_DISTANCE_MAX, p);
@@ -591,7 +699,10 @@ textures->EnableTexture("base_map");
 glActiveTexture(GL_TEXTURE1);
 //glEnable(GL_TEXTURE_CUBE_MAP_EXT);
 textures->EnableTexture("env_map");
-textures->EnableTexture("env");
+//textures->EnableTexture("env");
+
+glActiveTexture(GL_TEXTURE2);
+textures->EnableTexture("diff_env_map");
 
 //glPushMatrix();
 
@@ -605,7 +716,7 @@ glRotatef(90, 1, 0, 0);
 shader_test->setUniform1i("BaseMap", 0);
 
 // para test 2
-shader_test->setUniform1i("DiffuseEnvMap", 1);
+shader_test->setUniform1i("DiffuseEnvMap", 2);
 shader_test->setUniform1i("SpecularEnvMap", 1);
 
 /// para sem.frag
@@ -629,6 +740,10 @@ DisplayMeshList();
 
     //glBindTexture(GL_TEXTURE_CUBE_MAP_EXT, 0);
     //glDisable(GL_TEXTURE_CUBE_MAP_EXT);
+
+glActiveTexture(GL_TEXTURE2);
+glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+glDisable(GL_TEXTURE_CUBE_MAP);
     
 glActiveTexture(GL_TEXTURE1);
 glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
@@ -670,9 +785,25 @@ shader_test->disable();
     /// Prueba para desplegar HUD del programa.
     RenderHUD();
 
+    // Prueba para probar el shader de convolution.
+    RenderConvolution();
+
+    // Prueba para render to texture.
+    RenderToTexture();
+
+    // Prueba para calcular el grayscale.
+    RenderGrayscaleToTexture();
+
+    // prueba para generar el normal map.
+    RenderNormalMapToTexture();
+
+    // Prueba para montar la imagen de la camara en una textura.
+    RenderCameraToTexture();
     /////////////////////////////////////
 
 	glutSwapBuffers();
+
+CalculateFps();
 }
 
 int main(int argc, char** argv)
@@ -697,6 +828,22 @@ int main(int argc, char** argv)
 
 	glutInit(&argc, argv);
 
+// prueba para asegurar que los fps no estan siendo afectados por las tareas 
+// que hago, sino mas bien que la ventana no esta siendo actualizada cuando 
+// la camara no le envia una nueva imagen.
+/*glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
+		glutInitWindowSize(prefWidth, prefHeight);
+		glutCreateWindow(argv[0]);
+	glutDisplayFunc(Display);
+    glutIdleFunc(Display);
+	glutReshapeFunc(Reshape);
+	//glutVisibilityFunc(Visibility);
+	glutKeyboardFunc(Keyboard);
+	if (GLEW_OK != glewInit()) 
+       printf("glewinit fail!.\n");
+
+glutMainLoop();
+return 0;*/
 	// ----------------------------------------------------------------------------
 	// Hardware setup.
 	//
@@ -759,6 +906,15 @@ int main(int argc, char** argv)
 }
 
 void LoadData() {
+  // TODO: crear una variable de entorno, la cual define el punto de entrada de los archivos, 
+  // luego todas las direcciones son castedas a esta direccion global.
+
+  //// prueba para crear el frame buffer.
+  frame_buffer = boost::shared_ptr<DissertationProject::FrameBuffer> (new DissertationProject::FrameBuffer(256, 256, GL_BGRA, true));
+//frame_buffer = boost::shared_ptr<DissertationProject::FrameBuffer> (new DissertationProject::FrameBuffer(1, 1));
+
+ // frame_buffer = boost::shared_ptr<DissertationProject::FrameBuffer> (new DissertationProject::FrameBuffer(256, 256, GL_DEPTH_COMPONENT, false));
+
   //////////////////////////////////////////////
   //// Pruebas para cargar las texturas.
   //renderer.LoadTexture("../../media/textures/skin.tif");
@@ -769,26 +925,29 @@ void LoadData() {
   //renderer.LoadCubeTexture("../../media/textures/..");
 
   boost::shared_ptr<DissertationProject::TextureManager> textures = DissertationProject::Locator::GetTextureManager();
-  textures->RegisterTexture2D("base_map", "../../media/textures/box.bmp");
+  //textures->RegisterTexture2D("base_map", "../../media/textures/box.bmp");
   //textures->RegisterTexture2D("base_map", "../../media/textures/skin.tif");
   textures->RegisterTexture2D("logo", "../../media/textures/logo2.png");
-  textures->RegisterTexture2D("env", "../../media/textures/env.jpg");
+  textures->RegisterTexture2D("env", "../../media/textures/env3.jpg");
+  textures->RegisterTexture2D("base_map", "../../media/textures/env3.jpg");
 
-  textures->RegisterTextureCubeMap("env_map", "../../media/textures/cube2/opensea.png");
+  //textures->RegisterTextureCubeMap("env_map", "../../media/textures/cube2/opensea.png");
   //textures->RegisterTextureCubeMap("env_map", "../../media/textures/cube/cube_face.bmp");
+  textures->RegisterTextureCubeMap("env_map", "../../media/textures/cubeSpe/cube_face.bmp");
+  textures->RegisterTextureCubeMap("diff_env_map", "../../media/textures/cubeDiff/cube_face.bmp");
 
 
   //////////////////////////////////////////////
   //// Pruebas para cargar los meshes.
   // TODO: crear una variable global que defina el path de la aplicacion actual.
   mesh_test = boost::shared_ptr<DissertationProject::MeshObj> (new DissertationProject::MeshObj());
-  //mesh_test->Load("../../media/mesh/cube.obj");
-  mesh_test->Load("../../media/mesh/sphere.obj");
-  //mesh_test->Load("../../media/mesh/apple.obj");
-  //mesh_test->Load("../../media/mesh/bigguy.obj");
+ // mesh_test->Load("../../media/mesh/cube.obj");
+ // mesh_test->Load("../../media/mesh/sphere.obj");
+ // mesh_test->Load("../../media/mesh/apple.obj");
+  mesh_test->Load("../../media/mesh/bigguy.obj");
   LoadMeshList();
 
-
+                                                                                                                                                                                                         
   //////////////////////////////////////////////
   //// Pruebas para cargar los shaders.
   shader_test = boost::shared_ptr<DissertationProject::Shader> (new DissertationProject::Shader());
@@ -799,8 +958,8 @@ void LoadData() {
   //shader_test->openVertexP("../../media/shaders/test2.vert");
   //shader_test->openFragmentP("../../media/shaders/test2.frag");
 
-  //shader_test->openVertexP("../../media/shaders/test3.vert");
-  //shader_test->openFragmentP("../../media/shaders/test3.frag");
+  shader_test->openVertexP("../../media/shaders/test3.vert");
+  shader_test->openFragmentP("../../media/shaders/test3.frag");
 
   //shader_test->openVertexP("../../media/shaders/point_light.vert");
   //shader_test->openFragmentP("../../media/shaders/point_light.frag");
@@ -811,8 +970,8 @@ void LoadData() {
   //shader_test->openVertexP("../../media/shaders/texture_light.vert");
   //shader_test->openFragmentP("../../media/shaders/texture_light.frag");
 
-  shader_test->openVertexP("../../media/shaders/sem.vert");
-  shader_test->openFragmentP("../../media/shaders/sem.frag");
+  //shader_test->openVertexP("../../media/shaders/sem.vert");
+  //shader_test->openFragmentP("../../media/shaders/sem.frag");
 
   //shader_test->openVertexP("../../media/shaders/light1.vert");
   //shader_test->openFragmentP("../../media/shaders/light1.frag");
@@ -825,6 +984,34 @@ void LoadData() {
 
   shader_test->load();
 
+  convolution_shader = boost::shared_ptr<DissertationProject::Shader> (new DissertationProject::Shader());
+  convolution_shader->openVertexP("../../media/shaders/convolution.vert");
+  convolution_shader->openFragmentP("../../media/shaders/convolution.frag");
+
+  convolution_shader->load();
+  
+
+  // Crear la data para el grayscale shader.
+  grayscale_shader = boost::shared_ptr<DissertationProject::Shader> (new DissertationProject::Shader());
+  grayscale_shader->openVertexP("../../media/shaders/grayscale.vert");
+  grayscale_shader->openFragmentP("../../media/shaders/grayscale.frag");
+  grayscale_shader->load();
+  
+  //grayscale_framebuffer = boost::shared_ptr<DissertationProject::FrameBuffer> (new DissertationProject::FrameBuffer(256, 256, GL_BGRA, true));
+  
+  boost::shared_ptr<DissertationProject::Texture> base_map = DissertationProject::Locator::GetTextureManager()->GetTexture("base_map");
+  grayscale_framebuffer = boost::shared_ptr<DissertationProject::FrameBuffer> (new DissertationProject::FrameBuffer(base_map->width(), base_map->height(), GL_BGRA, true));
+
+
+  // prueba para crear el shader y el framebuffer para generar el normal map.
+  normalmap_shader = boost::shared_ptr<DissertationProject::Shader> (new DissertationProject::Shader());
+  normalmap_shader->openVertexP("../../media/shaders/gen_normal_map.vert");
+  normalmap_shader->openFragmentP("../../media/shaders/gen_normal_map.frag");
+  normalmap_shader->load();
+  normalmap_framebuffer = boost::shared_ptr<DissertationProject::FrameBuffer> (new DissertationProject::FrameBuffer(base_map->width(), base_map->height(), GL_BGRA, true));
+
+  // prueba para capturar la imagen de la camara.
+  camera_framebuffer = boost::shared_ptr<DissertationProject::FrameBuffer> (new DissertationProject::FrameBuffer(640, 480, GL_BGRA, true));
 
   // TODO: recordar colocar este chequeo en los shaders!!.
   //if (glCreateShaderObjectARB == 0)
@@ -897,27 +1084,67 @@ void RenderRotatingMesh() {
     glDisable(GL_TEXTURE_2D);
 }
 
-/// Test to render a HUD...
-void RenderHUD() {
-
-boost::shared_ptr<DissertationProject::TextureManager> textures = DissertationProject::Locator::GetTextureManager();
-
-//shader_test->enable();
+void RenderConvolution() {
+  boost::shared_ptr<DissertationProject::TextureManager> textures =
+      DissertationProject::Locator::GetTextureManager();
 
     glEnable(GL_TEXTURE_2D);
-//    glBindTexture(GL_TEXTURE_2D, 1);
-    //textures->EnableTexture("logo");
-    textures->EnableTexture("env");
+    //textures->EnableTexture("env");
+    //textures->EnableTexture("base_map");
+    frame_buffer->Bind();
+//grayscale_framebuffer->Bind();
 
-    glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+convolution_shader->enable();
 
+//GLfloat m[16];
+
+// TODO: provar la version de shaders actual con los cambios que hice, es 
+// decir utilizando el convolution_shader, por que antes se lo pasaba al otro shader.
+//glMatrixMode(GL_PROJECTION);
+//glGetFloatv(GL_PROJECTION_MATRIX, m);
+//convolution_shader->setUniformMatrix4fv("projection_matrix", m, true);
+
+//convolution_shader->setUniform1i("KernelSize", 1);
+//GLfloat KernelValue[] = {
+//  1.0, 1.0, 1.0, 1.0
+//};
+//convolution_shader->setUniform4fv("KernelValue", 1, KernelValue);
+
+// revisar por que aparece ese brillo.
+convolution_shader->setUniform1i("KernelSize", 9);
+GLfloat KernelValue[] = {
+  1.0, 1.0, 1.0, 1.0,
+  1.0, 1.0, 1.0, 1.0,
+  1.0, 1.0, 1.0, 1.0,
+  1.0, 1.0, 1.0, 1.0,
+  1.0, 1.0, 1.0, 1.0,
+  1.0, 1.0, 1.0, 1.0,
+  1.0, 1.0, 1.0, 1.0,
+  1.0, 1.0, 1.0, 1.0,
+  1.0, 1.0, 1.0, 1.0
+};
+convolution_shader->setUniform4fv("KernelValue", 9, KernelValue);
+
+const float step_w = 1.0/128; /// 1/width
+const float step_h = 1.0/128;  /// 1/height
+
+GLfloat Offset[] = {
+  -step_w, -step_h,  0.0, -step_h,  step_w, -step_h,
+  -step_w, 0.0,      0.0, 0.0,      step_w, 0.0,
+  -step_w, step_h,   0.0, step_h,   step_w, step_h
+};
+convolution_shader->setUniform2fv("Offset", 9, Offset);
+//glMatrixMode(GL_MODELVIEW);
+//glGetFloatv(GL_MODELVIEW_MATRIX, m);
+//convolution_shader->setUniformMatrix4fv("modelview_matrix", m, false);
+
+convolution_shader->setUniform1i("BaseImage", 0);
 
     glDisable(GL_DEPTH_TEST);
     glDepthMask(GL_FALSE);
     ViewOrtho(640, 480);
     
-    glTranslatef(0, 352, 0);
+    glTranslatef(384, 352, 0);
 
     glColor4f(1, 1, 1, 1.0f);
     glBegin(GL_QUADS);
@@ -931,6 +1158,267 @@ boost::shared_ptr<DissertationProject::TextureManager> textures = DissertationPr
       glVertex2f(0, 128);
     glEnd();
     
+    glEnable(GL_DEPTH_TEST);
+    glDepthMask(GL_TRUE);
+    ViewPerspective();
+
+convolution_shader->disable();
+
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glDisable(GL_TEXTURE_2D);
+}
+
+void RenderCameraToTexture() {
+  camera_framebuffer->Enable();
+
+//  glClearColor(0, 0, 0, 1);
+//  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+//	glDrawBuffer(GL_BACK);
+//gArglSettings = arglSetupForCurrentContext();
+ /* glActiveTexture(GL_TEXTURE0);
+  glEnable(GL_TEXTURE_2D);
+  glBindTexture(GL_TEXTURE_2D, 1);
+*/
+  arglDispImage(gARTImage, &gARTCparam, 1.0, gArglSettings);	// zoom = 1.0.
+
+/*
+  glBindTexture(GL_TEXTURE_2D, 0);
+  glDisable(GL_TEXTURE_2D);
+ */
+
+  camera_framebuffer->Disable();
+}
+
+void RenderToTexture() {
+//return;
+  frame_buffer->Enable();
+  
+ /* glMatrixMode(GL_PROJECTION);
+  glPushMatrix();
+  glLoadIdentity();
+  //gluPerspective(45, 1.0, 0.01, 100);
+glOrtho(0.0, 256.0, 0.0, 256.0, -1.0, 1.0); 
+  glMatrixMode(GL_MODELVIEW);
+  glPushMatrix();
+  glLoadIdentity();
+
+
+  glClearColor(0, 1, 0, 1);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+glDisable(GL_TEXTURE_2D);
+  glDisable(GL_BLEND);
+glEnable(GL_DEPTH_TEST);
+*/
+  //glEnable(GL_DEPTH_TEST);
+  glClearColor(0, 1, 0, 1);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+  //glPushMatrix();
+
+  glColor4f(1, 1, 1, 1.0f);
+  glTranslatef(0, 0, -4);
+
+  static float angle = 0;
+  angle += 7;
+  glRotatef(angle, 1, 1, 1);
+
+  DisplayMeshList();
+
+   /* //glTranslatef(-0.5, -0.5, -4);
+    glTranslatef(0, -0.2, -4);
+    glColor4f(1, 1, 1, 1.0f);
+
+    glBegin(GL_QUADS);
+      glTexCoord2f(0, 1);
+      glVertex2f(0, 0);
+      glTexCoord2f(1, 1);
+      glVertex2f(1, 0);
+      glTexCoord2f(1, 0);
+      glVertex2f(1, 1);
+      glTexCoord2f(0, 0);
+      glVertex2f(0, 1);
+    glEnd();
+*/
+//  glPopMatrix();
+
+  frame_buffer->Disable();
+}
+
+void RenderNormalMapToTexture() {
+  // NOTE: deberia definir el active texture con estas operaciones, 
+  // simplemente para estar seguro sobre cual estoy trabajando.
+  grayscale_framebuffer->Bind();
+
+  normalmap_framebuffer->Enable();
+
+  glMatrixMode(GL_PROJECTION);
+  glLoadIdentity();
+
+  // verificar si no tengo que colocar esto de otra manera.
+  const int kWidth = normalmap_framebuffer->width();
+  const int kHeight = normalmap_framebuffer->height();
+  glOrtho(0, kWidth, kHeight, 0, -1, 1);
+
+  glClearColor(0, 0, 0, 1);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+  glMatrixMode(GL_MODELVIEW);
+  glLoadIdentity();		
+
+  normalmap_shader->enable();
+
+  normalmap_shader->setUniform1i("height_map", 0);
+  normalmap_shader->setUniform1f("height_map_width", grayscale_framebuffer->width());
+  normalmap_shader->setUniform1f("height_map_height", grayscale_framebuffer->height());
+
+    glColor4f(1, 1, 1, 1.0f);
+    glBegin(GL_QUADS);
+      glTexCoord2f(0, 1);
+      glVertex2f(0, 0);
+      glTexCoord2f(1, 1);
+      glVertex2f(kWidth, 0);
+      glTexCoord2f(1, 0);
+      glVertex2f(kWidth, kHeight);
+      glTexCoord2f(0, 0);
+      glVertex2f(0, kHeight);
+    glEnd();
+
+  normalmap_shader->disable();
+
+  normalmap_framebuffer->Disable();
+}
+
+void RenderGrayscaleToTexture() {
+
+  //DissertationProject::Locator::GetTextureManager()->EnableTexture("base_map");
+  camera_framebuffer->Bind();
+
+  grayscale_framebuffer->Enable();
+
+  grayscale_shader->enable();
+  
+  convolution_shader->setUniform1i("base_map", 0);
+
+  // Escribir de alguna manera estas transformaciones mas eficientemente.
+  // Lo que podria hacer es meter estas cosas dentro de una clase, algo 
+  // como post-processing effect.... pensar!...
+  glMatrixMode(GL_PROJECTION);
+  glLoadIdentity();
+
+  // verificar si no tengo que colocar esto de otra manera.
+  const int kWidth = grayscale_framebuffer->width();
+  const int kHeight = grayscale_framebuffer->height();
+  glOrtho(0, kWidth, kHeight, 0, -1, 1);
+  //glOrtho(0, kWidth, 0, kHeight, -1, 1);
+
+  glClearColor(0, 0, 0, 1);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+//    glTranslatef(0, 352, 0);
+    //glTranslatef(0, kHeight, 0);
+
+    glColor4f(1, 1, 1, 1.0f);
+    glBegin(GL_QUADS);
+      glTexCoord2f(0, 1);
+      glVertex2f(0, 0);
+      glTexCoord2f(1, 1);
+      glVertex2f(kWidth, 0);
+      glTexCoord2f(1, 0);
+      glVertex2f(kWidth, kHeight);
+      glTexCoord2f(0, 0);
+      glVertex2f(0, kHeight);
+    glEnd();
+
+  glMatrixMode(GL_MODELVIEW);
+  glLoadIdentity();			
+
+  grayscale_shader->disable();
+
+  grayscale_framebuffer->Disable();
+
+  glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+/// Test to render a HUD...
+void RenderHUD() {
+
+boost::shared_ptr<DissertationProject::TextureManager> textures = DissertationProject::Locator::GetTextureManager();
+
+//shader_test->enable();
+
+    glEnable(GL_TEXTURE_2D);
+//    glBindTexture(GL_TEXTURE_2D, 1);
+    //textures->EnableTexture("logo");
+    //textures->EnableTexture("env");
+    textures->EnableTexture("base_map");
+
+    //frame_buffer->Bind();
+    camera_framebuffer->Bind();
+
+    glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+
+    glDisable(GL_DEPTH_TEST);
+    glDepthMask(GL_FALSE);
+    ViewOrtho(640, 480);
+    
+glPushMatrix();
+    glTranslatef(0, 352, 0);
+
+    glColor4f(1, 1, 1, 1.0f);
+    glBegin(GL_QUADS);
+      glTexCoord2f(0, 1);
+      glVertex2f(0, 0);
+      glTexCoord2f(1, 1);
+      glVertex2f(128, 0);
+      glTexCoord2f(1, 0);
+      glVertex2f(128, 128);
+      glTexCoord2f(0, 0);
+      glVertex2f(0, 128);
+    glEnd();
+glPopMatrix();    
+
+glPushMatrix();
+  grayscale_framebuffer->Bind();
+
+    glTranslatef(128, 352, 0);
+
+    glColor4f(1, 1, 1, 1.0f);
+    glBegin(GL_QUADS);
+      glTexCoord2f(0, 1);
+      glVertex2f(0, 0);
+      glTexCoord2f(1, 1);
+      glVertex2f(128, 0);
+      glTexCoord2f(1, 0);
+      glVertex2f(128, 128);
+      glTexCoord2f(0, 0);
+      glVertex2f(0, 128);
+    glEnd();
+glPopMatrix();    
+
+
+glPushMatrix();
+  normalmap_framebuffer->Bind();
+
+    glTranslatef(256, 352, 0);
+
+    glColor4f(1, 1, 1, 1.0f);
+    glBegin(GL_QUADS);
+      glTexCoord2f(0, 1);
+      glVertex2f(0, 0);
+      glTexCoord2f(1, 1);
+      glVertex2f(128, 0);
+      glTexCoord2f(1, 0);
+      glVertex2f(128, 128);
+      glTexCoord2f(0, 0);
+      glVertex2f(0, 128);
+    glEnd();
+glPopMatrix();    
+
+
+
     glEnable(GL_DEPTH_TEST);
     glDepthMask(GL_TRUE);
     ViewPerspective();

@@ -1,4 +1,4 @@
-﻿Build started 11/2/2010 7:56:32 PM.
+﻿Build started 11/13/2010 4:20:29 PM.
      1>Project "C:\Users\Avalon\Desktop\arlight client\project\Project.vcxproj" on node 2 (build target(s)).
      1>InitializeBuildStatus:
          Creating "C:\Users\Avalon\Desktop\arlight client\project\..\bin\_intermediate\Release\Project.unsuccessfulbuild" because "AlwaysCreate" was specified.
@@ -23,6 +23,7 @@
          "C:\Users\Avalon\Desktop\arlight client\project\..\bin\_intermediate\Release\mesh.obj"
          "C:\Users\Avalon\Desktop\arlight client\project\..\bin\_intermediate\Release\mesh_manager.obj"
          "C:\Users\Avalon\Desktop\arlight client\project\..\bin\_intermediate\Release\mesh_obj.obj"
+         "C:\Users\Avalon\Desktop\arlight client\project\..\bin\_intermediate\Release\frame_buffer.obj"
          "C:\Users\Avalon\Desktop\arlight client\project\..\bin\_intermediate\Release\hud.obj"
          "C:\Users\Avalon\Desktop\arlight client\project\..\bin\_intermediate\Release\mesh_renderer.obj"
          "C:\Users\Avalon\Desktop\arlight client\project\..\bin\_intermediate\Release\opengl_mesh_renderer.obj"
@@ -30,6 +31,7 @@
          "C:\Users\Avalon\Desktop\arlight client\project\..\bin\_intermediate\Release\renderer.obj"
          "C:\Users\Avalon\Desktop\arlight client\project\..\bin\_intermediate\Release\shader.obj"
          "C:\Users\Avalon\Desktop\arlight client\project\..\bin\_intermediate\Release\shadows.obj"
+         "C:\Users\Avalon\Desktop\arlight client\project\..\bin\_intermediate\Release\opengl_texture.obj"
          "C:\Users\Avalon\Desktop\arlight client\project\..\bin\_intermediate\Release\texture.obj"
          "C:\Users\Avalon\Desktop\arlight client\project\..\bin\_intermediate\Release\texture_manager.obj"
          "C:\Users\Avalon\Desktop\arlight client\project\..\bin\_intermediate\Release\rand.obj"
@@ -45,4 +47,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:02.89
+Time Elapsed 00:00:02.92

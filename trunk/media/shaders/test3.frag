@@ -2,9 +2,11 @@
 //uniform float SpecularPercent;
 //uniform float DiffusePercent;
 
-vec3 BaseColor = vec3(0.1, 0.1, 0.1);
-float SpecularPercent = 0.8; // 1; //0.05;
-float DiffusePercent = 0.2;
+//vec3 BaseColor = vec3(0.3, 0.3, 0.3);
+vec3 BaseColor = vec3(0.7, 0.7, 0.7);
+//vec3 BaseColor = vec3(1.0, 1.0, 1.0);
+float SpecularPercent = 0.0; // 1; //0.05;
+float DiffusePercent = 1.0;
 
 uniform samplerCube SpecularEnvMap;
 uniform samplerCube DiffuseEnvMap;
@@ -18,7 +20,7 @@ uniform sampler2D BaseMap;
 void main() {
   // Agregado por mi.....
   vec3 test_color = texture2D(BaseMap, vec2(gl_TexCoord[0]));
-  BaseColor = test_color;
+  //BaseColor = test_color;
 
   // Look up environment map values in cube maps
   vec3 diffuseColor = vec3(textureCube(DiffuseEnvMap, normalize(Normal)));
@@ -33,6 +35,8 @@ void main() {
   
   //gl_FragColor = vec4(envColor, 1.0);
   gl_FragColor = vec4(color, 1.0);
+  
+  //gl_FragColor = vec4(specularColor, 1.0);
   
   //vec3 test_color = texture2D(BaseMap, vec2(gl_TexCoord[0]));
   //gl_FragColor = vec4(test_color, 1.0);

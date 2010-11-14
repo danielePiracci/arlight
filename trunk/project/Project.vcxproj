@@ -28,6 +28,7 @@
     <ClCompile Include="source\mesh\mesh.cpp" />
     <ClCompile Include="source\mesh\mesh_manager.cpp" />
     <ClCompile Include="source\mesh\mesh_obj.cpp" />
+    <ClCompile Include="source\renderer\frame_buffer.cpp" />
     <ClCompile Include="source\renderer\hud.cpp" />
     <ClCompile Include="source\renderer\mesh_renderer.cpp" />
     <ClCompile Include="source\renderer\opengl_mesh_renderer.cpp" />
@@ -39,6 +40,7 @@
     <ClCompile Include="source\texture\texture.cpp" />
     <ClCompile Include="source\texture\texture_manager.cpp" />
     <ClCompile Include="source\util\rand.cpp" />
+    <ClCompile Include="source\util\string.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\base\component.h" />
@@ -68,6 +70,7 @@
     <ClInclude Include="source\mesh\mesh_manager.h" />
     <ClInclude Include="source\mesh\mesh_obj.h" />
     <ClInclude Include="source\opengl_includes.h" />
+    <ClInclude Include="source\renderer\frame_buffer.h" />
     <ClInclude Include="source\renderer\hud.h" />
     <ClInclude Include="source\renderer\mesh_renderer.h" />
     <ClInclude Include="source\renderer\null_renderer.h" />

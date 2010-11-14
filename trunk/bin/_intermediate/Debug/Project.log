@@ -1,4 +1,4 @@
-﻿Build started 11/9/2010 2:21:06 AM.
+﻿Build started 11/14/2010 3:39:26 AM.
      1>Project "C:\Users\Avalon\Desktop\arlight client\project\Project.vcxproj" on node 2 (build target(s)).
      1>InitializeBuildStatus:
          Creating "C:\Users\Avalon\Desktop\arlight client\project\..\bin\_intermediate\Debug\Project.unsuccessfulbuild" because "AlwaysCreate" was specified.
@@ -23,6 +23,7 @@
          "C:\Users\Avalon\Desktop\arlight client\project\..\bin\_intermediate\Debug\mesh.obj"
          "C:\Users\Avalon\Desktop\arlight client\project\..\bin\_intermediate\Debug\mesh_manager.obj"
          "C:\Users\Avalon\Desktop\arlight client\project\..\bin\_intermediate\Debug\mesh_obj.obj"
+         "C:\Users\Avalon\Desktop\arlight client\project\..\bin\_intermediate\Debug\frame_buffer.obj"
          "C:\Users\Avalon\Desktop\arlight client\project\..\bin\_intermediate\Debug\hud.obj"
          "C:\Users\Avalon\Desktop\arlight client\project\..\bin\_intermediate\Debug\mesh_renderer.obj"
          "C:\Users\Avalon\Desktop\arlight client\project\..\bin\_intermediate\Debug\opengl_mesh_renderer.obj"
@@ -34,6 +35,7 @@
          "C:\Users\Avalon\Desktop\arlight client\project\..\bin\_intermediate\Debug\texture.obj"
          "C:\Users\Avalon\Desktop\arlight client\project\..\bin\_intermediate\Debug\texture_manager.obj"
          "C:\Users\Avalon\Desktop\arlight client\project\..\bin\_intermediate\Debug\rand.obj"
+         "C:\Users\Avalon\Desktop\arlight client\project\..\bin\_intermediate\Debug\string.obj"
          LINK : C:\Users\Avalon\Desktop\arlight client\project\..\bin\Debug\Project.exe not found or not built by the last incremental link; performing full link
      1>LINK : warning LNK4098: defaultlib 'LIBCMT' conflicts with use of other libs; use /NODEFAULTLIB:library
          Project.vcxproj -> C:\Users\Avalon\Desktop\arlight client\project\..\bin\Debug\Project.exe
@@ -46,4 +48,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:02.65
+Time Elapsed 00:00:02.63

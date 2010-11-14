@@ -38,13 +38,14 @@ class TextureManager {
 //  boost::shared_ptr<Texture<T> > GetTexture(const std::string& file_path) const;
 
   /// \brief Look up for the first texture in the texture manager.
-  std::string GetNextTextureName() const;
+  //std::string GetNextTextureName() const;
 
   /// \brief Accessor method for the number of textures stored in the manager.
   /// \return The number of textures stored in the manager.
   int size() const;
 
 
+  // TODO: cambiar el nombre de este metodo por bidnd.
   void EnableTexture(const std::string& texture_name);
 
   void DisableTexture(const std::string& texture_name);
@@ -52,9 +53,16 @@ class TextureManager {
 
   void RegisterTexture2D(const std::string& name, const std::string& file_path);
 
+  void RegisterTexture2D(const std::string& name, int width, int height, void* pixels, bool depth_texture = false);
+
   void RegisterTextureCubeMap(const std::string& name, const std::string& file_path);
   
 //  void UnRegister(const std::string& file_path);
+
+  /// \brief Look up a texture in the texture manager.
+  /// \param[in] name Name used to register the texture.
+  boost::shared_ptr<Texture> GetTexture(const std::string& name) const;
+
 
 
  private:

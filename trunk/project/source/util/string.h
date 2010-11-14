@@ -6,12 +6,14 @@
 #ifndef UTIL_STRING_H__
 #define UTIL_STRING_H__
 
+#include "global.h"
+
 #include "string"
 #include "vector"
 
 BEGIN_PROJECT_NAMESPACE();
 
-std::vector<std::string> Split(std::string s, std::string delim) {
+inline std::vector<std::string> Split(std::string s, std::string delim) {
   std::vector<std::string> res; int pos;
   while ((pos = s.find(delim)) != -1) {
     if (pos) res.push_back(s.substr(0, pos));
@@ -58,7 +60,7 @@ inline std::string GetFileName(const std::string& path) {
 // For example; path = "/Data/Model/home.obj" return "home".
 inline std::string GetBaseFileName(const std::string& path) {
   const std::string fileName = GetFileName(path);
-  return fileName.substr(0, fileName.rfind(_T(".")));
+  return fileName.substr(0, fileName.rfind("."));
 }
 
 // Function to get path for the origin of one ..
@@ -80,7 +82,6 @@ inline std::string GetAPathFromOne(std::string src, std::string dest) {
   return src + std::string("/") + dest;
 }
 
-
 // Function to check if a file exist.
 //   Return True if the file exist, otherwise false.
 inline bool fileExist(const std::string& path) {
@@ -88,6 +89,14 @@ inline bool fileExist(const std::string& path) {
   if (f == NULL) return false;
   fclose(f); return true;
 }
+
+/// \brief Function to convert an integer into a string.
+// TODO: make this function generic with ... or with templates.
+std::string IntToStr(int n);
+  
+/// \brief Function convert a string into an integer.
+/// TODO: make this function generic with templates.
+//int StrToInt(const std::string& s);
 
 END_PROJECT_NAMESPACE();
 

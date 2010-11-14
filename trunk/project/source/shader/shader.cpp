@@ -322,6 +322,19 @@ void Shader::setUniform4fv(char *name, float v[])
 	glUniform4fARB(glGetUniformLocationARB(hProgram,name),v[0],v[1],v[2],v[3]);
 }
 
+void Shader::setUniform2fv(char *name, int count, float v[]) {
+  glUniform2fv(glGetUniformLocationARB(hProgram,name), count, v);
+}
+
+void Shader::setUniform4fv(char *name, int count, float v[]) {
+  glUniform4fv(glGetUniformLocationARB(hProgram,name), count, v);
+}
+
+// Funciton...
+void Shader::setUniformMatrix4fv(char *name, float m[], bool transpose) {
+  glUniformMatrix4fv(glGetUniformLocationARB(hProgram,name), 1, transpose, m);
+}
+
 //funcion para ajustar el valor de una variable atrribute dentro del shader
 void Shader::setAttrib1f(char *name, const float &x)
 {
