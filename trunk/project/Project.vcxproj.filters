@@ -189,6 +189,9 @@
     <ClCompile Include="source\util\string.cpp">
       <Filter>Source Files\util</Filter>
     </ClCompile>
+    <ClCompile Include="source\math\mat4.cpp">
+      <Filter>Source Files\math</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\global.h">
@@ -316,6 +319,12 @@
     </ClInclude>
     <ClInclude Include="source\renderer\frame_buffer.h">
       <Filter>Header Files\renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="source\math\mat4.h">
+      <Filter>Header Files\math</Filter>
+    </ClInclude>
+    <ClInclude Include="source\math\matrix.h">
+      <Filter>Header Files\math</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

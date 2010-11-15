@@ -1,4 +1,4 @@
-﻿Build started 11/14/2010 3:39:26 AM.
+﻿Build started 11/15/2010 10:40:14 PM.
      1>Project "C:\Users\Avalon\Desktop\arlight client\project\Project.vcxproj" on node 2 (build target(s)).
      1>InitializeBuildStatus:
          Creating "C:\Users\Avalon\Desktop\arlight client\project\..\bin\_intermediate\Debug\Project.unsuccessfulbuild" because "AlwaysCreate" was specified.
@@ -16,6 +16,7 @@
          "C:\Users\Avalon\Desktop\arlight client\project\..\bin\_intermediate\Debug\light.obj"
          "C:\Users\Avalon\Desktop\arlight client\project\..\bin\_intermediate\Debug\main.obj"
          "C:\Users\Avalon\Desktop\arlight client\project\..\bin\_intermediate\Debug\material.obj"
+         "C:\Users\Avalon\Desktop\arlight client\project\..\bin\_intermediate\Debug\mat4.obj"
          "C:\Users\Avalon\Desktop\arlight client\project\..\bin\_intermediate\Debug\vec3.obj"
          "C:\Users\Avalon\Desktop\arlight client\project\..\bin\_intermediate\Debug\vec4.obj"
          "C:\Users\Avalon\Desktop\arlight client\project\..\bin\_intermediate\Debug\face.obj"
@@ -48,4 +49,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:02.63
+Time Elapsed 00:00:04.24

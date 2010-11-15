@@ -1,4 +1,4 @@
-/// \file vec3.h
+/// \file math/vec3.h
 /// \author Juan Carlos De Abreu (jcabreur@gmail.com)
 /// \date 2009/11/07
 /// \version 1.0

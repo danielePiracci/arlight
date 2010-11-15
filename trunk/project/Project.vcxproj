@@ -21,6 +21,7 @@
     <ClCompile Include="source\light\light.cpp" />
     <ClCompile Include="source\main.cpp" />
     <ClCompile Include="source\material\material.cpp" />
+    <ClCompile Include="source\math\mat4.cpp" />
     <ClCompile Include="source\math\vec3.cpp" />
     <ClCompile Include="source\math\vec4.cpp" />
     <ClCompile Include="source\mesh\face.cpp" />
@@ -58,6 +59,8 @@
     <ClInclude Include="source\main.h" />
     <ClInclude Include="source\material\material.h" />
     <ClInclude Include="source\material\material_inl.h" />
+    <ClInclude Include="source\math\mat4.h" />
+    <ClInclude Include="source\math\matrix.h" />
     <ClInclude Include="source\math\vec3.h" />
     <ClInclude Include="source\math\vec3_inl.h" />
     <ClInclude Include="source\math\vec4.h" />

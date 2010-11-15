@@ -56,6 +56,10 @@
 
 #include "renderer/frame_buffer.h"
 
+#include "math/matrix.h"
+
+#include "collision_detection/bounding_box.h"
+
 #include "ctime"
 
 ////////////////////////////////////////////
@@ -96,10 +100,19 @@ boost::shared_ptr<DissertationProject::Shader> normalmap_shader;
 boost::shared_ptr<DissertationProject::FrameBuffer> normalmap_framebuffer;
 void RenderNormalMapToTexture();
 
-
 // Prueba para capturar la esfera.
-boost::shared_ptr<DissertationProject::FrameBuffer> camera_framebuffer;
-void RenderCameraToTexture();
+boost::shared_ptr<DissertationProject::FrameBuffer> camera_framebuffer;  // to store the image captured by the camera.
+boost::shared_ptr<DissertationProject::FrameBuffer> camera_framebuffer2; // to store the sub-image, where only appears the sphere.
+void RenderCameraToTexture(GLdouble *m, GLdouble *p);
+
+DissertationProject::vec3f coord;
+DissertationProject::BoundingBox bb;
+
+// Prueba para generar la textura con la mascara.
+boost::shared_ptr<DissertationProject::Shader> mask_shader;
+boost::shared_ptr<DissertationProject::FrameBuffer> mask_framebuffer;
+void RenderMaskToTexture();
+
 
 /// Prueba para desplegar HUD.
 void RenderHUD();
@@ -371,11 +384,14 @@ static void cleanup(void)
   convolution_shader.reset();
   grayscale_shader.reset();
   normalmap_shader.reset();
+  mask_shader.reset();
 
   frame_buffer.reset();
   grayscale_framebuffer.reset();
   normalmap_framebuffer.reset();
   camera_framebuffer.reset();
+  camera_framebuffer2.reset();
+  mask_framebuffer.reset();
 }
 
 static void Keyboard(unsigned char key, int x, int y)
@@ -635,8 +651,14 @@ return;
       glLoadMatrixd(prev_m);
     }
 
-	//if (gPatt_found) {
-    if (true) {
+    // Prueba para generar la textura con la esfera. Solo es actualizada la 
+    // textura si el patron es detectado.
+    if (gPatt_found) {
+      RenderCameraToTexture(prev_m, p);
+    }
+
+	if (gPatt_found) {
+   // if (true) {
 	
 		// Calculate the camera position relative to the marker.
 		// Replace VIEW_SCALEFACTOR with 1.0 to make one drawing unit equal to 1.0 ARToolKit units (usually millimeters).
@@ -698,8 +720,9 @@ textures->EnableTexture("base_map");
 
 glActiveTexture(GL_TEXTURE1);
 //glEnable(GL_TEXTURE_CUBE_MAP_EXT);
-textures->EnableTexture("env_map");
-//textures->EnableTexture("env");
+//textures->EnableTexture("env_map");
+textures->EnableTexture("env");
+mask_framebuffer->Bind();
 
 glActiveTexture(GL_TEXTURE2);
 textures->EnableTexture("diff_env_map");
@@ -779,14 +802,18 @@ shader_test->disable();
     // la ventana es importante al mommento de hacer el viewOrtho, por lo que 
     // este valor deberia ser accessible desde cualquier punto de la aplicacion.
 
+    // Prueba para montar la imagen de la camara en una textura.
+   // RenderCameraToTexture(prev_m, p);
+
+    // Prueba para aplicar la mascara a la textura.
+    RenderMaskToTexture();
 
 //    RenderRotatingMesh();
-
     /// Prueba para desplegar HUD del programa.
     RenderHUD();
 
     // Prueba para probar el shader de convolution.
-    RenderConvolution();
+   // RenderConvolution();
 
     // Prueba para render to texture.
     RenderToTexture();
@@ -795,15 +822,13 @@ shader_test->disable();
     RenderGrayscaleToTexture();
 
     // prueba para generar el normal map.
-    RenderNormalMapToTexture();
+   // RenderNormalMapToTexture();
 
-    // Prueba para montar la imagen de la camara en una textura.
-    RenderCameraToTexture();
     /////////////////////////////////////
 
 	glutSwapBuffers();
 
-CalculateFps();
+//CalculateFps();
 }
 
 int main(int argc, char** argv)
@@ -930,6 +955,7 @@ void LoadData() {
   textures->RegisterTexture2D("logo", "../../media/textures/logo2.png");
   textures->RegisterTexture2D("env", "../../media/textures/env3.jpg");
   textures->RegisterTexture2D("base_map", "../../media/textures/env3.jpg");
+  textures->RegisterTexture2D("mask", "../../media/textures/mask.png");
 
   //textures->RegisterTextureCubeMap("env_map", "../../media/textures/cube2/opensea.png");
   //textures->RegisterTextureCubeMap("env_map", "../../media/textures/cube/cube_face.bmp");
@@ -958,8 +984,8 @@ void LoadData() {
   //shader_test->openVertexP("../../media/shaders/test2.vert");
   //shader_test->openFragmentP("../../media/shaders/test2.frag");
 
-  shader_test->openVertexP("../../media/shaders/test3.vert");
-  shader_test->openFragmentP("../../media/shaders/test3.frag");
+  //shader_test->openVertexP("../../media/shaders/test3.vert");
+  //shader_test->openFragmentP("../../media/shaders/test3.frag");
 
   //shader_test->openVertexP("../../media/shaders/point_light.vert");
   //shader_test->openFragmentP("../../media/shaders/point_light.frag");
@@ -970,8 +996,8 @@ void LoadData() {
   //shader_test->openVertexP("../../media/shaders/texture_light.vert");
   //shader_test->openFragmentP("../../media/shaders/texture_light.frag");
 
-  //shader_test->openVertexP("../../media/shaders/sem.vert");
-  //shader_test->openFragmentP("../../media/shaders/sem.frag");
+  shader_test->openVertexP("../../media/shaders/sem.vert");
+  shader_test->openFragmentP("../../media/shaders/sem.frag");
 
   //shader_test->openVertexP("../../media/shaders/light1.vert");
   //shader_test->openFragmentP("../../media/shaders/light1.frag");
@@ -1012,6 +1038,14 @@ void LoadData() {
 
   // prueba para capturar la imagen de la camara.
   camera_framebuffer = boost::shared_ptr<DissertationProject::FrameBuffer> (new DissertationProject::FrameBuffer(640, 480, GL_BGRA, true));
+  camera_framebuffer2 = boost::shared_ptr<DissertationProject::FrameBuffer> (new DissertationProject::FrameBuffer(128, 128, GL_BGRA, true));
+
+  // prueba para generar la textura con la mascara.
+  mask_shader = boost::shared_ptr<DissertationProject::Shader> (new DissertationProject::Shader());
+  mask_shader->openVertexP("../../media/shaders/apply_mask.vert");
+  mask_shader->openFragmentP("../../media/shaders/apply_mask.frag");
+  mask_shader->load();  
+  mask_framebuffer = boost::shared_ptr<DissertationProject::FrameBuffer> (new DissertationProject::FrameBuffer(128, 128, GL_BGRA, true));
 
   // TODO: recordar colocar este chequeo en los shaders!!.
   //if (glCreateShaderObjectARB == 0)
@@ -1168,8 +1202,86 @@ convolution_shader->disable();
     glDisable(GL_TEXTURE_2D);
 }
 
-void RenderCameraToTexture() {
-  camera_framebuffer->Enable();
+// TODO: este metodo debe llamarse UpdateSphereTexture o algo por el estilo.
+void RenderCameraToTexture(GLdouble *m, GLdouble *p) {
+  // Calculate the texture's coordinates.
+  DissertationProject::mat4d modelview(m);
+  DissertationProject::mat4d projection(p);
+
+  modelview = DissertationProject::Math::transpose(modelview);
+  projection = DissertationProject::Math::transpose(projection);
+
+  DissertationProject::mat4d pm = projection * modelview;
+
+  std::vector<DissertationProject::vec3f> points;
+  for (int i = -1; i <= 1; ++i) {
+    for (int j = -1; j <= 1; ++j) {
+      for (int k = -1; k <= 1; ++k) {
+        // Generate the point.
+        DissertationProject::vec4d point(i, j, k, 1);
+
+        const double kSphereSize = 0.10; //0.14;
+
+        // scale the point
+        point *= kSphereSize;
+        point.w = 1;
+
+        // Translate the point.
+        point += DissertationProject::vec4d(0, -1.5, kSphereSize, 0);
+
+        DissertationProject::vec4d position = pm * point;
+        if (position.w > 0) position /= position.w;
+        position = position * 0.5 + 0.5;
+        points.push_back(DissertationProject::vec3f (position.x, position.y, 0));
+      }
+    }
+  }
+
+  bb.Init(points[0]);
+  const int kNumberOfPoints = static_cast<int> (points.size());
+  for (int i = 0; i < kNumberOfPoints; ++i)
+    bb.Update(points[i]);
+
+  // Mode debug...
+  //printf("%.2f %.2f  -  %.2f %.2f\n", bb.min_point().x, bb.min_point().y, bb.max_point().x, bb.max_point().y);
+
+  if (bb.min_point().x < 0 || bb.max_point().x > 1 ||
+      bb.min_point().y < 0 || bb.max_point().y > 1) return;
+
+  camera_framebuffer2->Enable();
+
+  glMatrixMode(GL_PROJECTION);
+  glLoadIdentity();
+
+  // verificar si no tengo que colocar esto de otra manera.
+  const int kWidth = camera_framebuffer2->width();
+  const int kHeight = camera_framebuffer2->height();
+  glOrtho(0, kWidth, kHeight, 0, -1, 1);
+
+  glClearColor(0, 0, 0, 1);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+  glEnable(GL_TEXTURE_2D);
+  camera_framebuffer->Bind();
+
+   glColor4f(1, 1, 1, 1.0f);
+    glBegin(GL_QUADS);
+      glTexCoord2f(bb.min_point().x, bb.max_point().y);
+      glVertex2f(0, 0);
+      glTexCoord2f(bb.max_point().x, bb.max_point().y);
+      glVertex2f(kWidth, 0);
+      glTexCoord2f(bb.max_point().x, bb.min_point().y);
+      glVertex2f(kWidth, kHeight);
+      glTexCoord2f(bb.min_point().x, bb.min_point().y);
+      glVertex2f(0, kHeight);
+    glEnd();
+
+  glBindTexture(GL_TEXTURE_2D, 0);
+  glDisable(GL_TEXTURE_2D);
+
+  camera_framebuffer2->Disable();
+
+//  
 
 //  glClearColor(0, 0, 0, 1);
 //  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -1179,14 +1291,14 @@ void RenderCameraToTexture() {
   glEnable(GL_TEXTURE_2D);
   glBindTexture(GL_TEXTURE_2D, 1);
 */
-  arglDispImage(gARTImage, &gARTCparam, 1.0, gArglSettings);	// zoom = 1.0.
+  //arglDispImage(gARTImage, &gARTCparam, 1.0, gArglSettings);	// zoom = 1.0.
 
 /*
   glBindTexture(GL_TEXTURE_2D, 0);
   glDisable(GL_TEXTURE_2D);
  */
 
-  camera_framebuffer->Disable();
+
 }
 
 void RenderToTexture() {
@@ -1245,6 +1357,58 @@ glEnable(GL_DEPTH_TEST);
   frame_buffer->Disable();
 }
 
+void RenderMaskToTexture() {
+  mask_framebuffer->Enable();
+
+  glMatrixMode(GL_PROJECTION);
+  glLoadIdentity();
+
+  // verificar si no tengo que colocar esto de otra manera.
+  const int kWidth = mask_framebuffer->width();
+  const int kHeight = mask_framebuffer->height();
+  glOrtho(0, kWidth, kHeight, 0, -1, 1);
+
+  glClearColor(0, 0, 0, 1);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+  glMatrixMode(GL_MODELVIEW);
+  glLoadIdentity();
+
+  glActiveTexture(GL_TEXTURE0);
+  //normalmap_framebuffer->Bind();
+  camera_framebuffer2->Bind();
+
+  glActiveTexture(GL_TEXTURE1);
+  DissertationProject::Locator::GetTextureManager()->EnableTexture("mask");
+
+  mask_shader->enable();
+
+  mask_shader->setUniform1i("base_map", 0);
+  mask_shader->setUniform1i("mask_map", 1);
+  
+    glColor4f(1, 1, 1, 1.0f);
+    glBegin(GL_QUADS);
+      glTexCoord2f(0, 1);
+      glVertex2f(0, 0);
+      glTexCoord2f(1, 1);
+      glVertex2f(kWidth, 0);
+      glTexCoord2f(1, 0);
+      glVertex2f(kWidth, kHeight);
+      glTexCoord2f(0, 0);
+      glVertex2f(0, kHeight);
+    glEnd();
+
+  mask_shader->disable();
+
+  glActiveTexture(GL_TEXTURE1);
+  glBindTexture(GL_TEXTURE_2D, 0);
+
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, 0);
+
+  mask_framebuffer->Disable();
+}
+
 void RenderNormalMapToTexture() {
   // NOTE: deberia definir el active texture con estas operaciones, 
   // simplemente para estar seguro sobre cual estoy trabajando.
@@ -1292,7 +1456,8 @@ void RenderNormalMapToTexture() {
 void RenderGrayscaleToTexture() {
 
   //DissertationProject::Locator::GetTextureManager()->EnableTexture("base_map");
-  camera_framebuffer->Bind();
+  //camera_framebuffer->Bind();
+  camera_framebuffer2->Bind();
 
   grayscale_framebuffer->Enable();
 
@@ -1354,7 +1519,7 @@ boost::shared_ptr<DissertationProject::TextureManager> textures = DissertationPr
     textures->EnableTexture("base_map");
 
     //frame_buffer->Bind();
-    camera_framebuffer->Bind();
+    camera_framebuffer2->Bind();
 
     glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -1377,11 +1542,32 @@ glPushMatrix();
       glVertex2f(128, 128);
       glTexCoord2f(0, 0);
       glVertex2f(0, 128);
+
+/*      glTexCoord2f(coord.x, coord.y + 0.2);
+      glVertex2f(0, 0);
+      glTexCoord2f(coord.x + 0.2, coord.y + 0.2);
+      glVertex2f(128, 0);
+      glTexCoord2f(coord.x + 0.2, coord.y);
+      glVertex2f(128, 128);
+      glTexCoord2f(coord.x, coord.y);
+      glVertex2f(0, 128);
+*/
+/*
+      glTexCoord2f(bb.min_point().x, bb.max_point().y);
+      glVertex2f(0, 0);
+      glTexCoord2f(bb.max_point().x, bb.max_point().y);
+      glVertex2f(128, 0);
+      glTexCoord2f(bb.max_point().x, bb.min_point().y);
+      glVertex2f(128, 128);
+      glTexCoord2f(bb.min_point().x, bb.min_point().y);
+      glVertex2f(0, 128);
+*/
     glEnd();
 glPopMatrix();    
 
 glPushMatrix();
-  grayscale_framebuffer->Bind();
+  //grayscale_framebuffer->Bind();
+   mask_framebuffer->Bind();
 
     glTranslatef(128, 352, 0);
 
