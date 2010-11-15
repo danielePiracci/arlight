@@ -10,7 +10,6 @@
 
 #include "global.h"
 #include "math/vector.h"
-//#include "string"
 
 BEGIN_PROJECT_NAMESPACE();
 
@@ -24,12 +23,12 @@ class BoundingBox {
 
   void Update(const vec3f& point);
 
+  inline void Init(const vec3f& point) { min_point_ = point; max_point_ = point; }
   inline void set_min_point(const vec3f& min_point) { min_point_ = min_point; }
   inline void set_max_point(const vec3f& max_point) { max_point_ = max_point; }
 
   inline const vec3f& min_point() { return min_point_; }
   inline const vec3f& max_point() { return max_point_; }
-
 
  private:
   //
