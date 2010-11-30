@@ -1,4 +1,4 @@
-varying vec3 lightDir,normal;
+varying vec3 lightDir, normal;
 	
 void main() {
 	normal = normalize(gl_NormalMatrix * gl_Normal);

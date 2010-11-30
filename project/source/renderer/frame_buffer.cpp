@@ -18,7 +18,6 @@ FrameBuffer::FrameBuffer(int width, int height, GLuint format, bool has_depth_bu
     : width_(width), height_(height), format_(format), has_depth_buffer_(has_depth_buffer) {
   
   // TODO: agregar un assert cuando las texturas no es potencia de 2.
-
   // Allocate a framebuffer object.
   glGenFramebuffersEXT(1, &frame_buffer_name_);
   glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, frame_buffer_name_);
@@ -87,6 +86,11 @@ FrameBuffer::~FrameBuffer() {
 void FrameBuffer::Enable(bool init) {
   glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, frame_buffer_name_);
   glPushAttrib(GL_VIEWPORT_BIT | GL_COLOR_BUFFER_BIT);
+  
+  //if (format_ == GL_DEPTH_COMPONENT) {
+  //  glDrawBuffer(GL_NONE);
+  //  glReadBuffer(GL_NONE);
+  //}
 
   //glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
   glViewport(0, 0, width_, height_);
@@ -120,10 +124,10 @@ void FrameBuffer::Disable() {
   glPopAttrib();
   glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
 
-  if (format_ == GL_DEPTH_COMPONENT) {
-    glDrawBuffer(GL_BACK);
-    glReadBuffer(GL_BACK);
-  }
+  //if (format_ == GL_DEPTH_COMPONENT) {
+  //  glDrawBuffer(GL_BACK);
+  //  glReadBuffer(GL_BACK);
+  //}
 }
 
 void FrameBuffer::Bind() {
