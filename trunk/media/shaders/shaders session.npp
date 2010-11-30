@@ -1,0 +1,14 @@
+<NotepadPlus>
+    <Session activeView="1">
+        <mainView activeIndex="2">
+            <File firstVisibleLine="0" xOffset="0" scrollWidth="427" startPos="504" endPos="504" selMode="0" lang="Normal Text" filename="C:\Users\Avalon\Desktop\arlight client\media\shaders\test3.vert" />
+            <File firstVisibleLine="0" xOffset="0" scrollWidth="560" startPos="0" endPos="0" selMode="0" lang="Normal Text" filename="C:\Users\Avalon\Desktop\arlight client\media\shaders\test3.frag" />
+            <File firstVisibleLine="0" xOffset="0" scrollWidth="476" startPos="374" endPos="374" selMode="0" lang="GLSL 1.50 Core" filename="C:\Users\Avalon\Desktop\arlight client\media\shaders\sem.vert" />
+            <File firstVisibleLine="0" xOffset="0" scrollWidth="399" startPos="129" endPos="129" selMode="0" lang="GLSL 1.50 Core" filename="C:\Users\Avalon\Desktop\arlight client\media\shaders\sem.frag" />
+            <File firstVisibleLine="0" xOffset="0" scrollWidth="273" startPos="94" endPos="94" selMode="0" lang="C++" filename="C:\Users\Avalon\Desktop\arlight client\media\shaders\shadow_map.vert" />
+        </mainView>
+        <subView activeIndex="0">
+            <File firstVisibleLine="0" xOffset="0" scrollWidth="504" startPos="381" endPos="381" selMode="0" lang="GLSL 1.50 Core" filename="C:\Users\Avalon\Desktop\arlight client\media\shaders\shadow_map.frag" />
+        </subView>
+    </Session>
+</NotepadPlus>

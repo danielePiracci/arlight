@@ -62,11 +62,17 @@
 
 #include "ctime"
 
+#include "shader/post_process_effect.h"
+
 ////////////////////////////////////////////
 //// Pruebas para agregar las texturas ...
 
 // TODO: hacer que el objeto no desaparezca tan facilmente cuando no se detecta.
 
+// TODO: implementar un archivo de configuracion con todos los parametros, como por ejemplo
+// los tamaños de las texturas, etc... y por ejemplo si utilizar shadows, etc...
+// estos valores deben ser definidos en hard code en la applicacion, pero tambien pueden ser 
+// redefinidos en el archivo....
 
 DissertationProject::OpenGLRenderer renderer;
 
@@ -94,11 +100,13 @@ void RenderToTexture();
 boost::shared_ptr<DissertationProject::Shader> grayscale_shader;
 boost::shared_ptr<DissertationProject::FrameBuffer> grayscale_framebuffer;
 void RenderGrayscaleToTexture();
+boost::shared_ptr<DissertationProject::PostProcessEffect> grayscale_effect;
 
 // Prueba para calcular el normal map.
 boost::shared_ptr<DissertationProject::Shader> normalmap_shader;
 boost::shared_ptr<DissertationProject::FrameBuffer> normalmap_framebuffer;
 void RenderNormalMapToTexture();
+boost::shared_ptr<DissertationProject::PostProcessEffect> normalmap_effect;
 
 // Prueba para capturar la esfera.
 boost::shared_ptr<DissertationProject::FrameBuffer> camera_framebuffer;  // to store the image captured by the camera.
@@ -112,6 +120,49 @@ DissertationProject::BoundingBox bb;
 boost::shared_ptr<DissertationProject::Shader> mask_shader;
 boost::shared_ptr<DissertationProject::FrameBuffer> mask_framebuffer;
 void RenderMaskToTexture();
+boost::shared_ptr<DissertationProject::PostProcessEffect> mask_effect;
+
+// prueba para generar shadow maps.
+// TODO: esto en realidad deberia llamarse; soft shadows.
+boost::shared_ptr<DissertationProject::Shader> shadowmap_shader;
+boost::shared_ptr<DissertationProject::FrameBuffer> shadowmap_framebuffer;
+boost::shared_ptr<DissertationProject::FrameBuffer> shadowmap_framebuffer2;
+void GenerateShadowMap();
+boost::shared_ptr<DissertationProject::FrameBuffer> frame_buffer2;
+
+boost::shared_ptr<DissertationProject::Shader> modulation_shader;
+boost::shared_ptr<DissertationProject::FrameBuffer> modulation_framebuffer;
+
+
+// prueba para cargar el shader de convolucion...
+// Se debe cambiar el nombre de este shader a convolution, blur es temporal.
+boost::shared_ptr<DissertationProject::Shader> blur_shader;
+boost::shared_ptr<DissertationProject::FrameBuffer> blur_framebuffer;
+boost::shared_ptr<DissertationProject::PostProcessEffect> blur_effect;
+void ApplyBlurEffectToShadows();
+boost::shared_ptr<DissertationProject::FrameBuffer> blur_framebuffer_tmp;
+
+// To swap between framebuffers during tests.
+boost::shared_ptr<DissertationProject::FrameBuffer> frame_test;
+
+
+// prueba para aplicar la textura de sombras sobre la textura de la escena.
+boost::shared_ptr<DissertationProject::Shader> apply_shadow_shader;
+boost::shared_ptr<DissertationProject::FrameBuffer> apply_shadow_framebuffer;
+boost::shared_ptr<DissertationProject::PostProcessEffect> apply_shadow_effect;
+void ApplyShadowsToFinalImage();
+
+
+//DissertationProject::vec3f lightPosition(2.0f, 3.0f,-2.0f);
+//DissertationProject::vec3f lightPosition(0.0f, 5.0f, 4.0f);
+DissertationProject::vec3f lightPosition(0.0f, 2.0f, 1.0f);
+
+
+// prueba para poder hacer swap de los shaders.
+boost::shared_ptr<DissertationProject::Shader> temp_shader;
+
+// prueba para poder hacer render con una luz normal.
+boost::shared_ptr<DissertationProject::Shader> light_shader;
 
 
 /// Prueba para desplegar HUD.
@@ -385,6 +436,10 @@ static void cleanup(void)
   grayscale_shader.reset();
   normalmap_shader.reset();
   mask_shader.reset();
+  temp_shader.reset();
+  light_shader.reset();
+  blur_shader.reset();
+  apply_shadow_shader.reset();
 
   frame_buffer.reset();
   grayscale_framebuffer.reset();
@@ -392,6 +447,45 @@ static void cleanup(void)
   camera_framebuffer.reset();
   camera_framebuffer2.reset();
   mask_framebuffer.reset();
+  frame_buffer2.reset();
+  shadowmap_framebuffer.reset();
+  shadowmap_framebuffer2.reset();
+  modulation_framebuffer.reset();
+  blur_framebuffer.reset();
+  blur_framebuffer_tmp.reset();
+  apply_shadow_framebuffer.reset();
+
+  mask_effect.reset();
+  normalmap_effect.reset();
+  grayscale_effect.reset();
+  blur_effect.reset();
+  apply_shadow_effect.reset();
+}
+
+static void processSpecialKeys(int key, int x, int y) {
+  static int cnt = 0;
+  
+  switch (key) {
+    case GLUT_KEY_LEFT:
+      lightPosition.x -= 0.1;
+      break;
+    case GLUT_KEY_RIGHT:
+      lightPosition.x += 0.1;
+      break;
+    case GLUT_KEY_UP:
+      lightPosition.z -= 0.1;
+      break;
+    case GLUT_KEY_DOWN:
+      lightPosition.z += 0.1;
+      break;
+    case GLUT_KEY_F1:
+      //frame_test = cnt % 2 ? blur_framebuffer : modulation_framebuffer;
+        frame_test = cnt % 2 ? blur_framebuffer : apply_shadow_framebuffer;
+        cnt++;
+      break;
+    default:
+      break;
+  };
 }
 
 static void Keyboard(unsigned char key, int x, int y)
@@ -406,7 +500,8 @@ static void Keyboard(unsigned char key, int x, int y)
 			exit(0);
 			break;
 		case ' ':
-			gDrawRotate = !gDrawRotate;
+			//gDrawRotate = !gDrawRotate;
+            std::swap(temp_shader, shader_test);
 			break;
 		case 'C':
 		case 'c':
@@ -446,7 +541,8 @@ static void Keyboard(unsigned char key, int x, int y)
 			printf("\nAdditionally, the ARVideo library supplied the following help text:\n");
 			arVideoDispOption();
 			break;
-		default:
+
+        default:
 			break;
 	}
 	if (threshChange) {
@@ -542,6 +638,56 @@ static void Reshape(int w, int h)
 	// Call through to anyone else who needs to know about window sizing here.
 }
 
+void CalculateFps2() {
+  static clock_t last = clock();
+  static int fps = 0;
+  static std::string message;
+
+  clock_t current = clock();
+  if (current - last >= 1000) {
+    //printf("FPS: %d\n", fps);
+    char buffer[100];
+    sprintf(buffer, " FPS: %d\n", fps);
+    message = buffer;
+    fps = 0;
+    last = current;
+  }
+  fps++;
+
+   // TODO: colocar estos mensajes 
+
+  // Pintar mensajes de texto
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+    ///glPushAttrib(GL_VIEWPORT_BIT | GL_COLOR_BUFFER_BIT);
+    glPushAttrib(GL_VIEWPORT_BIT);
+    //gluOrtho2D(-1.0f, 1.0f, -1.0f, 1.0f);
+    gluOrtho2D(0, 640, 480, 0);
+
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadIdentity();
+
+    const int kTittleHeight = 15;
+
+    glRasterPos2f(10, kTittleHeight + 22);
+    for(unsigned int i=0; i<message.size(); ++i)
+        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, message[i]);
+
+    //Print text
+    std::string message2 = "<<<<<< >>>>>>>";
+    glRasterPos2f(10, kTittleHeight + 10);
+    for(unsigned int i=0; i<message2.size(); ++i)
+        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, message2[i]);
+
+    //reset matrices
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+    glMatrixMode(GL_MODELVIEW);
+    glPopMatrix();
+}
+
 
 void CalculateFps() {
   static clock_t last = clock();
@@ -611,12 +757,36 @@ return;
 return;
 */
 
+
     GLdouble p[16];
 	GLdouble m[16];
+
+    // parche para que el objeto nunca desaparezca
+	static GLdouble prev_m[16];
+    static GLdouble prev_p[16];
+
+
 	
 	// Select correct buffer for this context.
 	glDrawBuffer(GL_BACK);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Clear the buffers for new frame.
+
+/*glPushMatrix();
+	glMatrixMode(GL_PROJECTION);
+	glLoadMatrixd(prev_p);
+	glMatrixMode(GL_MODELVIEW);
+	// Viewing transformation.
+	glLoadIdentity();
+    glLoadMatrixd(prev_m);
+glScalef(4, 4, 4);
+glRotatef(90, 1, 0, 0);
+DisplayMeshList();
+glPopMatrix();
+
+ GenerateShadowMap();
+
+glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Clear the buffers for new frame.
+*/
 	
 	arglDispImage(gARTImage, &gARTCparam, 1.0, gArglSettings);	// zoom = 1.0.
 	arVideoCapNext();
@@ -640,13 +810,12 @@ return;
 	// (I.e. must be specified before viewing transformations.)
 	//none
 
-    // parche para que el objeto nunca desaparezca
-	static GLdouble prev_m[16];
-
+    // parche para que el objeto nunca desaparezca.
 	if (gPatt_found) {
       arglCameraViewRH(gPatt_trans, m, VIEW_SCALEFACTOR);
 	  glLoadMatrixd(m);
       memcpy(prev_m, m, sizeof(m));
+      memcpy(prev_p, m, sizeof(p));
     } else {
       glLoadMatrixd(prev_m);
     }
@@ -802,6 +971,9 @@ shader_test->disable();
     // la ventana es importante al mommento de hacer el viewOrtho, por lo que 
     // este valor deberia ser accessible desde cualquier punto de la aplicacion.
 
+    // prueba para generar el shadow map.
+   GenerateShadowMap();
+
     // Prueba para montar la imagen de la camara en una textura.
    // RenderCameraToTexture(prev_m, p);
 
@@ -813,7 +985,7 @@ shader_test->disable();
     RenderHUD();
 
     // Prueba para probar el shader de convolution.
-   // RenderConvolution();
+    //RenderConvolution();
 
     // Prueba para render to texture.
     RenderToTexture();
@@ -822,9 +994,11 @@ shader_test->disable();
     RenderGrayscaleToTexture();
 
     // prueba para generar el normal map.
-   // RenderNormalMapToTexture();
+    RenderNormalMapToTexture();
 
     /////////////////////////////////////
+
+    CalculateFps2();
 
 	glutSwapBuffers();
 
@@ -917,6 +1091,7 @@ return 0;*/
 	glutReshapeFunc(Reshape);
 	glutVisibilityFunc(Visibility);
 	glutKeyboardFunc(Keyboard);
+    glutSpecialFunc(processSpecialKeys);
 	
     
     // NOTE: glew debe ser inicializado despues de inicializar glut
@@ -935,7 +1110,7 @@ void LoadData() {
   // luego todas las direcciones son castedas a esta direccion global.
 
   //// prueba para crear el frame buffer.
-  frame_buffer = boost::shared_ptr<DissertationProject::FrameBuffer> (new DissertationProject::FrameBuffer(256, 256, GL_BGRA, true));
+  frame_buffer = boost::shared_ptr<DissertationProject::FrameBuffer> (new DissertationProject::FrameBuffer(1024, 1024, GL_BGRA, true));
 //frame_buffer = boost::shared_ptr<DissertationProject::FrameBuffer> (new DissertationProject::FrameBuffer(1, 1));
 
  // frame_buffer = boost::shared_ptr<DissertationProject::FrameBuffer> (new DissertationProject::FrameBuffer(256, 256, GL_DEPTH_COMPONENT, false));
@@ -1010,6 +1185,14 @@ void LoadData() {
 
   shader_test->load();
 
+  // prueba para poder hacer swap de los shaders.
+  temp_shader = boost::shared_ptr<DissertationProject::Shader> (new DissertationProject::Shader());
+  temp_shader->openVertexP("../../media/shaders/test3.vert");
+  temp_shader->openFragmentP("../../media/shaders/test3.frag");
+  temp_shader->load();
+
+
+  // prueba para cargar el shader de convolution.
   convolution_shader = boost::shared_ptr<DissertationProject::Shader> (new DissertationProject::Shader());
   convolution_shader->openVertexP("../../media/shaders/convolution.vert");
   convolution_shader->openFragmentP("../../media/shaders/convolution.frag");
@@ -1027,7 +1210,7 @@ void LoadData() {
   
   boost::shared_ptr<DissertationProject::Texture> base_map = DissertationProject::Locator::GetTextureManager()->GetTexture("base_map");
   grayscale_framebuffer = boost::shared_ptr<DissertationProject::FrameBuffer> (new DissertationProject::FrameBuffer(base_map->width(), base_map->height(), GL_BGRA, true));
-
+  grayscale_effect = boost::shared_ptr<DissertationProject::PostProcessEffect> (new DissertationProject::PostProcessEffect(grayscale_shader, grayscale_framebuffer));
 
   // prueba para crear el shader y el framebuffer para generar el normal map.
   normalmap_shader = boost::shared_ptr<DissertationProject::Shader> (new DissertationProject::Shader());
@@ -1035,6 +1218,7 @@ void LoadData() {
   normalmap_shader->openFragmentP("../../media/shaders/gen_normal_map.frag");
   normalmap_shader->load();
   normalmap_framebuffer = boost::shared_ptr<DissertationProject::FrameBuffer> (new DissertationProject::FrameBuffer(base_map->width(), base_map->height(), GL_BGRA, true));
+  normalmap_effect = boost::shared_ptr<DissertationProject::PostProcessEffect> (new DissertationProject::PostProcessEffect(normalmap_shader, normalmap_framebuffer));
 
   // prueba para capturar la imagen de la camara.
   camera_framebuffer = boost::shared_ptr<DissertationProject::FrameBuffer> (new DissertationProject::FrameBuffer(640, 480, GL_BGRA, true));
@@ -1046,10 +1230,140 @@ void LoadData() {
   mask_shader->openFragmentP("../../media/shaders/apply_mask.frag");
   mask_shader->load();  
   mask_framebuffer = boost::shared_ptr<DissertationProject::FrameBuffer> (new DissertationProject::FrameBuffer(128, 128, GL_BGRA, true));
+  mask_effect = boost::shared_ptr<DissertationProject::PostProcessEffect> (new DissertationProject::PostProcessEffect(mask_shader, mask_framebuffer));
+
+
+  // prueba para generar el shadowmap.
+  shadowmap_shader = boost::shared_ptr<DissertationProject::Shader> (new DissertationProject::Shader());
+  shadowmap_shader->openVertexP("../../media/shaders/shadow_map.vert");
+  shadowmap_shader->openFragmentP("../../media/shaders/shadow_map.frag");
+  shadowmap_shader->load();  
+ // shadowmap_framebuffer = boost::shared_ptr<DissertationProject::FrameBuffer> (new DissertationProject::FrameBuffer(640, 480, GL_DEPTH_COMPONENT));
+//  shadowmap_framebuffer = boost::shared_ptr<DissertationProject::FrameBuffer> (new DissertationProject::FrameBuffer(512, 512, GL_DEPTH_COMPONENT));
+ // shadowmap_framebuffer = boost::shared_ptr<DissertationProject::FrameBuffer> (new DissertationProject::FrameBuffer(128, 128, GL_BGRA, true));
+ //shadowmap_framebuffer = boost::shared_ptr<DissertationProject::FrameBuffer> (new DissertationProject::FrameBuffer(640, 480, GL_BGRA, true));
+
+ //shadowmap_framebuffer = boost::shared_ptr<DissertationProject::FrameBuffer> (new DissertationProject::FrameBuffer(256, 256, GL_BGRA, true));
+ shadowmap_framebuffer = boost::shared_ptr<DissertationProject::FrameBuffer> (new DissertationProject::FrameBuffer(1024, 1024, GL_DEPTH_COMPONENT));
+ shadowmap_framebuffer2 = boost::shared_ptr<DissertationProject::FrameBuffer> (new DissertationProject::FrameBuffer(1024, 1024, GL_DEPTH_COMPONENT));
+
+  frame_buffer2 = boost::shared_ptr<DissertationProject::FrameBuffer> (new DissertationProject::FrameBuffer(1024, 1024, GL_BGRA, true));
+  
+
+  modulation_shader = boost::shared_ptr<DissertationProject::Shader> (new DissertationProject::Shader());
+  modulation_shader->openVertexP("../../media/shaders/modulation.vert");
+  modulation_shader->openFragmentP("../../media/shaders/modulation.frag");
+  modulation_shader->load();  
+  modulation_framebuffer = boost::shared_ptr<DissertationProject::FrameBuffer> (new DissertationProject::FrameBuffer(1024, 1024, GL_BGRA, true));
 
   // TODO: recordar colocar este chequeo en los shaders!!.
   //if (glCreateShaderObjectARB == 0)
   //  printf("Error: shader\n");
+
+  // prrueba para utilizar un shader de luz normal.
+  light_shader = boost::shared_ptr<DissertationProject::Shader> (new DissertationProject::Shader());
+  light_shader->openVertexP("../../media/shaders/point_light.vert");
+  light_shader->openFragmentP("../../media/shaders/point_light.frag");
+  light_shader->load();  
+
+
+  // prueba para generar la textura con blur.
+  blur_shader = boost::shared_ptr<DissertationProject::Shader> (new DissertationProject::Shader());
+  blur_shader->openVertexP("../../media/shaders/blur.vert");
+  blur_shader->openFragmentP("../../media/shaders/blur.frag");
+  blur_shader->load();  
+  blur_framebuffer = boost::shared_ptr<DissertationProject::FrameBuffer> (new DissertationProject::FrameBuffer(1024, 1024, GL_BGRA, true));
+  blur_effect = boost::shared_ptr<DissertationProject::PostProcessEffect> (new DissertationProject::PostProcessEffect(blur_shader, blur_framebuffer));
+  blur_framebuffer_tmp = boost::shared_ptr<DissertationProject::FrameBuffer> (new DissertationProject::FrameBuffer(1024, 1024, GL_BGRA, true));
+
+
+  frame_test = blur_framebuffer;
+
+  // prueba componer las imagenes del render final junto con el de las sombras.
+  apply_shadow_shader = boost::shared_ptr<DissertationProject::Shader> (new DissertationProject::Shader());
+  apply_shadow_shader->openVertexP("../../media/shaders/apply_shadow.vert");
+  apply_shadow_shader->openFragmentP("../../media/shaders/apply_shadow.frag");
+  apply_shadow_shader->load();  
+  apply_shadow_framebuffer = boost::shared_ptr<DissertationProject::FrameBuffer> (new DissertationProject::FrameBuffer(1024, 1024, GL_BGRA, true));
+  apply_shadow_effect = boost::shared_ptr<DissertationProject::PostProcessEffect> (new DissertationProject::PostProcessEffect(apply_shadow_shader, apply_shadow_framebuffer));
+  
+
+}
+
+void GenerateShadowMap() {
+
+/*shadowmap_framebuffer->Bind();
+glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, 640, 480);
+return;
+*/
+
+/*
+frame_buffer->Enable();
+
+shadowmap_framebuffer->Bind();
+glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, 256, 256);
+
+frame_buffer->Disable();
+*/
+return;
+
+  shadowmap_framebuffer->Enable();
+
+  glLoadIdentity();
+    gluPerspective(45.0f, 1.0f, 1.0f, 20.0f);
+
+    //Depth states
+    glClearDepth(1.0f);
+    glDepthFunc(GL_LEQUAL);
+    glEnable(GL_DEPTH_TEST);
+
+    glDepthMask(GL_TRUE);
+
+	// Clear previous frame values
+	//glClear( GL_DEPTH_BUFFER_BIT);
+glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	
+	//Disable color rendering, we only want to write to the Z-Buffer
+//	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE); 
+
+	// Culling switching, rendering only backface, this is done to avoid self-shadowing
+	glCullFace(GL_FRONT);
+
+  static float angle = 0;
+  angle += 7;
+  glRotatef(angle, 1, 1, 1);
+
+  DisplayMeshList();
+
+  shadowmap_framebuffer->Disable();
+
+    //Enabling color write (previously disabled for light POV z-buffer rendering)
+	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE); 
+	
+    glCullFace(GL_BACK);
+
+	// Clear previous frame values
+//	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+
+  //shadowmap_framebuffer->Enable();
+
+  //glClearColor(0, 1, 0, 1);
+  //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+//gluPerspective(45, 1.0, 0.01, 8);
+//
+//  //glColor4f(1, 1, 1, 1.0f);
+//glColor4f(0, 0, 0, 1.0f);
+//  glTranslatef(0, 0, -4);
+//
+//  static float angle = 0;
+//  angle += 7;
+//  glRotatef(angle, 1, 1, 1);
+//
+//  DisplayMeshList();
+//
+//  shadowmap_framebuffer->Disable();
 }
 
 void RenderRotatingMesh2() {
@@ -1248,6 +1562,7 @@ void RenderCameraToTexture(GLdouble *m, GLdouble *p) {
   if (bb.min_point().x < 0 || bb.max_point().x > 1 ||
       bb.min_point().y < 0 || bb.max_point().y > 1) return;
 
+
   camera_framebuffer2->Enable();
 
   glMatrixMode(GL_PROJECTION);
@@ -1301,10 +1616,466 @@ void RenderCameraToTexture(GLdouble *m, GLdouble *p) {
 
 }
 
+/////////////////////////////////////////////////
+// To generate de data of a gaussian filter...
+float GaussianDistribution(float x, float y, float rho) {
+  rho *= rho;
+  const float kPi = 2.0 * acos(0.0);
+  float g = 1.0f / sqrt(2.0f * kPi * rho);
+  return g * exp((x * x + y * y) / (-2.0f * rho));
+}
+
+void GetGaussianOffsets(const float texelsz[2], float offset[16][2], float weight[16], bool bHorizontal) {
+  const float kBlurSize = 3.0;
+
+  // Get the center texel offset and weight
+  weight[0] = 1.0f * GaussianDistribution(0.0f, 0.f, kBlurSize);
+  offset[0][0] = offset[0][1] = 0.0f;
+
+  // Get the offsets and weights for the remaining taps
+  if (bHorizontal) {
+    for( int i = 1; i < 15; i += 2 ) {
+      offset[i][0] = float(i) * texelsz[0];
+      offset[i][1] = 0.0f;
+      offset[i+1][0] = float(-i) * texelsz[0];
+      offset[i+1][1] = 0.0f;
+      weight[i] = 2.0f * GaussianDistribution(i, 0.0f, kBlurSize);
+      weight[i+1] = 2.0f * GaussianDistribution(i + 1.0f, 0.0f, kBlurSize);
+    }
+  } else {
+    for( int i = 1; i < 15; i += 2 ) {
+      offset[i][0] = 0.0f;
+      offset[i][1] = float(i) * texelsz[1];
+      offset[i+1][0] = 0.0f;
+      offset[i+1][1] = float(-i) * texelsz[1];
+      weight[i] = 2.0f * GaussianDistribution(0.0f, i, kBlurSize);
+      weight[i+1] = 2.0f * GaussianDistribution(0.0f, i + 1.0f, kBlurSize);
+    }
+  }
+}
+
+void GenerateOffsetArray(int size, float step, GLfloat offset[][2]) {
+  for (int i = 0; i < size; ++i) {
+    for (int j = 0; j < size; ++j) {
+      offset[i * size + j][0] = (j - size / 2) * step;
+      offset[i * size + j][1] = (i - size / 2) * step;
+    }
+  }
+}
+
+void GenerateKernelArray(int size, float step, GLfloat *kernel) {
+  for (int i = 0; i < size; ++i) {
+    for (int j = 0; j < size; ++j) {
+      kernel[i * size + j] = step;
+    }
+  }
+}
+
+void ApplyBlurEffectToShadows() {
+  ////GLfloat KernelValue[] = {
+  ////  1.0, 1.0, 1.0,
+  ////  1.0, 1.0, 1.0,
+  ////  1.0, 1.0, 1.0
+  ////};
+
+  ////GLfloat KernelValue[] = {
+  ////  1.0/9, 1.0/9, 1.0/9,
+  ////  1.0/9, 1.0/9, 1.0/9,
+  ////  1.0/9, 1.0/9, 1.0/9
+  ////};
+
+  ///*GLfloat KernelValue[] = {
+  //  0, 1.0/5, 0,
+  //  1.0/5, 1.0/5, 1.0/5,
+  //  0, 1.0/5, 0
+  //};*/
+
+  //GLfloat KernelValue[49];
+
+  //GenerateKernelArray(7, 1.0 / 49.0, KernelValue);
+
+  ////const float step_w = 1.0/128; /// 1/width
+  ////const float step_h = 1.0/128;  /// 1/height
+  //const float step_w = 1.0 / modulation_framebuffer->width(); /// 1/width
+  //const float step_h = 1.0 / modulation_framebuffer->height();  /// 1/height
+
+  ////GLfloat Offset[][2] = {
+  ////  {-step_w, -step_h},  {0.0, -step_h},  {step_w, -step_h},
+  ////  {-step_w, 0.0},      {0.0, 0.0},      {step_w, 0.0},
+  ////  {-step_w, step_h},   {0.0, step_h},   {step_w, step_h}
+  ////};
+
+  //GLfloat Offset[49][2];
+  //GenerateOffsetArray(7, step_w, Offset);
+
+  //glActiveTexture(GL_TEXTURE0);
+  //modulation_framebuffer->Bind();
+
+  //blur_effect->Enable();
+  //  blur_effect->shader()->setUniform1i("base_map", 0);
+
+  //  blur_effect->shader()->setUniform1i("KernelSize", 49);
+  //  blur_effect->shader()->setUniform1fv("KernelValue", 49, KernelValue);
+  //  blur_effect->shader()->setUniform2fv("Offset", 49, &Offset[0][0]);
+
+  //  //blur_shader->setUniform1i("base_map", 0);
+  //blur_effect->Disable();
+
+  //glActiveTexture(GL_TEXTURE0);
+  //glBindTexture(GL_TEXTURE_2D, 0);
+
+//////////
+  GLfloat h_offset[16][2], h_weight[16];
+  GLfloat v_offset[16][2], v_weight[16];
+
+  memset(h_weight, 0, sizeof(h_weight));
+  memset(v_weight, 0, sizeof(v_weight));
+  memset(h_offset, 0, sizeof(h_offset));
+  memset(v_offset, 0, sizeof(v_offset));
+
+  const float texel_size[2] = { 1.0 / blur_effect->frame_buffer()->width(),
+                            1.0 / blur_effect->frame_buffer()->height() };
+
+  GetGaussianOffsets(texel_size, h_offset, h_weight, true);
+  GetGaussianOffsets(texel_size, v_offset, v_weight, false);
+
+  ////
+  // First pass, horizontal blur.
+  glActiveTexture(GL_TEXTURE0);
+  modulation_framebuffer->Bind();
+  //camera_framebuffer->Bind();
+
+  blur_effect->Enable();
+    blur_effect->shader()->setUniform1i("base_map", 0);
+
+    blur_effect->shader()->setUniform1fv("weight", 16, &h_weight[0]);
+    blur_effect->shader()->setUniform2fv("offset", 16, &h_offset[0][0]);
+
+  blur_effect->Disable();
+
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, 0);
+
+  ////
+  // Store the changes in modulation, TODO: use a different texture...
+  glActiveTexture(GL_TEXTURE0);
+  blur_framebuffer_tmp->Bind();
+
+  blur_framebuffer->Enable();
+    glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, blur_framebuffer->width(), blur_framebuffer->height());
+  blur_framebuffer->Disable();
+
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, 0);
+
+  ////
+  // Second pass, vertical blur.
+  glActiveTexture(GL_TEXTURE0);
+  //modulation_framebuffer->Bind();
+  blur_framebuffer_tmp->Bind();
+
+  blur_effect->Enable();
+    blur_effect->shader()->setUniform1i("base_map", 0);
+
+    blur_effect->shader()->setUniform1fv("weight", 16, &v_weight[0]);
+    blur_effect->shader()->setUniform2fv("offset", 16, &v_offset[0][0]);
+
+  blur_effect->Disable();
+
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+void ApplyShadowsToFinalImage() {
+  glActiveTexture(GL_TEXTURE0);
+  frame_buffer->Bind();
+
+  glActiveTexture(GL_TEXTURE1);
+  blur_framebuffer_tmp->Bind();
+
+  apply_shadow_effect->Enable();
+    apply_shadow_effect->shader()->setUniform1i("base_map", 0);
+    apply_shadow_effect->shader()->setUniform1i("shadow_map", 1);
+  apply_shadow_effect->Disable();
+
+  glActiveTexture(GL_TEXTURE1);
+  glBindTexture(GL_TEXTURE_2D, 0);
+
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+void DrawShadowTestScene(float angle) {
+  glColor4f(1, 1, 1, 1.0f);
+
+glPushMatrix();
+
+  glRotatef(angle, 0, 1, 0);
+ // glTranslatef(0, 0, -2);
+
+  //static float angle = 0;
+  //angle += 1;
+  //glRotatef(angle, 0, 1, 0);
+  //glScalef(2, 2, 2);
+
+  glActiveTexture(GL_TEXTURE7);
+  glMatrixMode(GL_TEXTURE);
+  glPushMatrix();
+    // concatening all matrix into one.
+    glRotatef(angle, 0, 1, 0);
+
+    DisplayMeshList();
+
+  glPopMatrix();
+  // restore to default values.
+  glActiveTexture(GL_TEXTURE0);
+  glMatrixMode(GL_MODELVIEW);
+
+glPopMatrix();
+
+  // Pintar un plano....
+glPushMatrix();
+  //glTranslatef(0, -1, 0);
+  //glScalef(2, 2, 2);
+  /*glBegin(GL_QUADS);
+    glNormal3f(0, 1, 0);
+    glVertex3f(-1, 0, -1);
+    glNormal3f(0, 1, 0);
+    glVertex3f(-1, 0, 1);
+    glNormal3f(0, 1, 0);
+    glVertex3f(1, 0, 1);
+    glNormal3f(0, 1, 0);
+    glVertex3f(1, 0, -1);
+  glEnd();*/
+
+  glBegin(GL_QUADS);
+    glNormal3f(0, 1, 0);
+    glVertex3f(-2, -0.5, -2);
+    glNormal3f(0, 1, 0);
+    glVertex3f(-2, -0.5, 2);
+    glNormal3f(0, 1, 0);
+    glVertex3f(2, -0.5, 2);
+    glNormal3f(0, 1, 0);
+    glVertex3f(2, -0.5, -2);
+  glEnd();
+
+glPopMatrix();
+}
+
 void RenderToTexture() {
+  static float angle2 = 0;
+  angle2 += 1;
+
 //return;
   frame_buffer->Enable();
   
+// Init -> TODO: hacer esto en otra parte.
+  GLfloat lightProjectionMatrix[16], lightViewMatrix[16];
+  GLfloat cameraProjectionMatrix[16], cameraViewMatrix[16];
+
+  //DissertationProject::vec3f cameraPosition(-2.5f, 3.5f,-2.5f);
+DissertationProject::vec3f cameraPosition(0, 1, 2);
+  //DissertationProject::vec3f lightPosition(2.0f, 3.0f,-2.0f);
+
+  glMatrixMode(GL_MODELVIEW);
+  glLoadIdentity();
+  gluPerspective(45.0f, 1.0f, 1.0f, 100.0f);
+  glGetFloatv(GL_MODELVIEW_MATRIX, cameraProjectionMatrix);
+
+  glLoadIdentity();
+  gluLookAt(cameraPosition.x, cameraPosition.y, cameraPosition.z,
+  0.0f, 0.0f, 0.0f,
+  0.0f, 1.0f, 0.0f);
+  glGetFloatv(GL_MODELVIEW_MATRIX, cameraViewMatrix);
+
+  glLoadIdentity();
+  gluPerspective(45.0f, 1.0f, 1.0f, 8.0f);
+  glGetFloatv(GL_MODELVIEW_MATRIX, lightProjectionMatrix);
+
+  glLoadIdentity();
+  gluLookAt(lightPosition.x, lightPosition.y, lightPosition.z,
+  0.0f, 0.0f, 0.0f,
+  0.0f, 1.0f, 0.0f);
+//  glRotatef(angle2, 0, 1, 0);
+  glGetFloatv(GL_MODELVIEW_MATRIX, lightViewMatrix);
+
+    //First pass - from light's point of view
+  glClearColor(0, 0, 0, 1);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    glMatrixMode(GL_PROJECTION);
+    glLoadMatrixf(lightProjectionMatrix);
+
+    glMatrixMode(GL_MODELVIEW);
+    glLoadMatrixf(lightViewMatrix);
+
+    //Use viewport the same size as the shadow map
+   // glViewport(0, 0, shadowMapSize, shadowMapSize);
+
+    //Draw back faces into the shadow map
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_FRONT);
+
+    //Disable color writes, and use flat shading for speed
+    glShadeModel(GL_FLAT);
+    glColorMask(0, 0, 0, 0);
+
+   DrawShadowTestScene(angle2);
+
+shadowmap_framebuffer->Bind();
+glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, shadowmap_framebuffer->width(), shadowmap_framebuffer->height());
+
+shadowmap_framebuffer2->Bind();
+glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, shadowmap_framebuffer->width(), shadowmap_framebuffer->height());
+glBindTexture(GL_TEXTURE_2D, 0);
+
+    //restore states
+    glCullFace(GL_BACK);
+    glShadeModel(GL_SMOOTH);
+    glColorMask(1, 1, 1, 1);
+
+    //2nd pass - Draw from camera's point of view
+    //glClearColor(0, 1, 0, 1);
+    //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClear(GL_DEPTH_BUFFER_BIT); 
+    glMatrixMode(GL_PROJECTION);
+    glLoadMatrixf(cameraProjectionMatrix);
+
+    glMatrixMode(GL_MODELVIEW);
+    glLoadMatrixf(cameraViewMatrix);
+
+   // glViewport(0, 0, windowWidth, windowHeight);
+
+   light_shader->enable();
+     DrawShadowTestScene(angle2);
+   light_shader->disable();
+
+//frame_buffer2->Bind();
+//glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, shadowmap_framebuffer->width(), shadowmap_framebuffer->height());
+//glBindTexture(GL_TEXTURE_2D, 0);
+
+frame_buffer->Disable();
+
+ 
+  /// Third past, in order to have the second one in a different texture. # en otras palabras no hace falta realizar la segunda pasada.
+
+  ////////
+  // Setup texture matrix.
+  const GLfloat bias[16] = {0.5, 0.0, 0.0, 0.0,
+                            0.0, 0.5, 0.0, 0.0,
+                            0.0, 0.0, 0.5, 0.0,
+                            0.5, 0.5, 0.5, 1.0};
+
+  glActiveTexture(GL_TEXTURE7);
+
+
+  glMatrixMode(GL_TEXTURE);
+  glLoadIdentity();
+  glLoadMatrixf(bias);
+
+  // concatening all matrix into one.
+  glMultMatrixf(lightProjectionMatrix);
+  glMultMatrixf(lightViewMatrix);
+  //glRotatef(angle2, 0, 1, 0);
+
+  // restore to default values.
+  glActiveTexture(GL_TEXTURE0);
+
+  glMatrixMode(GL_MODELVIEW);
+  ////
+
+
+frame_buffer2->Enable();
+  glClearColor(0, 0, 0, 1);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    glMatrixMode(GL_PROJECTION);
+    glLoadMatrixf(cameraProjectionMatrix);
+
+    glMatrixMode(GL_MODELVIEW);
+    glLoadMatrixf(cameraViewMatrix);
+
+    //glRotatef(angle2, 0, 1, 0);
+
+   // glViewport(0, 0, windowWidth, windowHeight);
+
+   shadowmap_framebuffer->Bind();
+
+
+// NOTE: si quiero que no se afecte la textura con el depth buffer quitar estas lineas...
+glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE_ARB, GL_COMPARE_R_TO_TEXTURE_ARB);
+glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC_ARB, GL_LEQUAL);
+glTexParameteri(GL_TEXTURE_2D, GL_DEPTH_TEXTURE_MODE_ARB, GL_INTENSITY);
+
+
+   shadowmap_shader->enable();
+
+   mask_shader->setUniform1i("shadow_map", 0); // utilizar depth map instead.
+
+/*  static float angle2 = 0;
+  angle2 += 1;
+  glRotatef(angle2, 1, 1, 1);
+*/
+   //light_shader->enable();
+     DrawShadowTestScene(angle2);
+   //light_shader->disable();
+   shadowmap_shader->disable();
+
+   glBindTexture(GL_TEXTURE_2D, 0);
+
+frame_buffer2->Disable();
+
+
+//////////////////// prueba para generar la imagen de modulation
+// Esta parte deberia estar dentro de un metodo que sea el que genera el shadow map.
+modulation_framebuffer->Enable();
+  glClearColor(1, 1, 1, 1);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    glMatrixMode(GL_PROJECTION);
+    glLoadMatrixf(cameraProjectionMatrix);
+
+    glMatrixMode(GL_MODELVIEW);
+    glLoadMatrixf(cameraViewMatrix);
+
+   // glViewport(0, 0, windowWidth, windowHeight);
+
+   shadowmap_framebuffer->Bind();
+
+
+   modulation_shader->enable();
+
+   modulation_shader->setUniform1i("shadow_map", 0); // utilizar depth map instead.
+   DrawShadowTestScene(angle2);
+
+   modulation_shader->disable();
+
+
+   glBindTexture(GL_TEXTURE_2D, 0);
+
+modulation_framebuffer->Disable();
+
+//////////////////////
+
+ glDisable(GL_CULL_FACE);
+
+  // Aplicar el filtro blur a la textura con las sombras.
+  ApplyBlurEffectToShadows();
+
+  // Componer la imagen final, agregar las sombras al objeto final.
+  ApplyShadowsToFinalImage();
+
+return;
+///////////////////////////////
+  frame_buffer->Enable();
+
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluPerspective(45, 1.0, 1, 4);
+
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+
  /* glMatrixMode(GL_PROJECTION);
   glPushMatrix();
   glLoadIdentity();
@@ -1329,10 +2100,10 @@ glEnable(GL_DEPTH_TEST);
   //glPushMatrix();
 
   glColor4f(1, 1, 1, 1.0f);
-  glTranslatef(0, 0, -4);
+  glTranslatef(0, 0, -2);
 
   static float angle = 0;
-  angle += 7;
+  angle += 1;
   glRotatef(angle, 1, 1, 1);
 
   DisplayMeshList();
@@ -1354,10 +2125,38 @@ glEnable(GL_DEPTH_TEST);
 */
 //  glPopMatrix();
 
+shadowmap_framebuffer->Bind();
+glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, 256, 256);
+glBindTexture(GL_TEXTURE_2D, 0);
+
   frame_buffer->Disable();
 }
 
 void RenderMaskToTexture() {
+  glActiveTexture(GL_TEXTURE0);
+  camera_framebuffer2->Bind();
+
+  glActiveTexture(GL_TEXTURE1);
+  DissertationProject::Locator::GetTextureManager()->EnableTexture("mask");
+
+  mask_effect->Enable();
+
+    mask_effect->shader()->setUniform1i("base_map", 0);
+    mask_effect->shader()->setUniform1i("mask_map", 1);
+
+    //mask_shader->setUniform1i("base_map", 0);
+    //mask_shader->setUniform1i("mask_map", 1);
+  
+  mask_effect->Disable();
+
+  glActiveTexture(GL_TEXTURE1);
+  glBindTexture(GL_TEXTURE_2D, 0);
+
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, 0);
+
+// NOTE: El codigo anterior es totalmente equivalente al siguiente.
+/*
   mask_framebuffer->Enable();
 
   glMatrixMode(GL_PROJECTION);
@@ -1407,9 +2206,30 @@ void RenderMaskToTexture() {
   glBindTexture(GL_TEXTURE_2D, 0);
 
   mask_framebuffer->Disable();
+*/
 }
 
 void RenderNormalMapToTexture() {
+  glActiveTexture(GL_TEXTURE0);
+  grayscale_framebuffer->Bind();
+
+  normalmap_effect->Enable();
+
+    normalmap_effect->shader()->setUniform1i("height_map", 0);
+    normalmap_effect->shader()->setUniform1f("height_map_width", grayscale_framebuffer->width());
+    normalmap_effect->shader()->setUniform1f("height_map_height", grayscale_framebuffer->height());
+
+    //normalmap_shader->setUniform1i("height_map", 0);
+    //normalmap_shader->setUniform1f("height_map_width", grayscale_framebuffer->width());
+    //normalmap_shader->setUniform1f("height_map_height", grayscale_framebuffer->height());
+
+  normalmap_effect->Disable();
+
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, 0);
+/*
+return;
+
   // NOTE: deberia definir el active texture con estas operaciones, 
   // simplemente para estar seguro sobre cual estoy trabajando.
   grayscale_framebuffer->Bind();
@@ -1451,10 +2271,22 @@ void RenderNormalMapToTexture() {
   normalmap_shader->disable();
 
   normalmap_framebuffer->Disable();
+*/
 }
 
 void RenderGrayscaleToTexture() {
+  glActiveTexture(GL_TEXTURE0);
+  camera_framebuffer2->Bind();
 
+  grayscale_effect->Enable();
+    grayscale_effect->shader()->setUniform1i("base_map", 0);
+    //grayscale_shader->setUniform1i("base_map", 0);
+  grayscale_effect->Disable();
+
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, 0);
+
+/*
   //DissertationProject::Locator::GetTextureManager()->EnableTexture("base_map");
   //camera_framebuffer->Bind();
   camera_framebuffer2->Bind();
@@ -1503,6 +2335,7 @@ void RenderGrayscaleToTexture() {
   grayscale_framebuffer->Disable();
 
   glBindTexture(GL_TEXTURE_2D, 0);
+*/
 }
 
 /// Test to render a HUD...
@@ -1530,6 +2363,8 @@ boost::shared_ptr<DissertationProject::TextureManager> textures = DissertationPr
     ViewOrtho(640, 480);
     
 glPushMatrix();
+  mask_framebuffer->Bind();
+
     glTranslatef(0, 352, 0);
 
     glColor4f(1, 1, 1, 1.0f);
@@ -1567,7 +2402,9 @@ glPopMatrix();
 
 glPushMatrix();
   //grayscale_framebuffer->Bind();
-   mask_framebuffer->Bind();
+   //mask_framebuffer->Bind();
+   frame_buffer->Bind();
+  // modulation_framebuffer->Bind();
 
     glTranslatef(128, 352, 0);
 
@@ -1586,9 +2423,55 @@ glPopMatrix();
 
 
 glPushMatrix();
-  normalmap_framebuffer->Bind();
+  //grayscale_framebuffer->Bind();
+  //normalmap_framebuffer->Bind();
+  //shadowmap_framebuffer2->Bind();
+  //modulation_framebuffer->Bind();
+  //blur_framebuffer->Bind();
+  frame_test->Bind();
+  // frame_buffer->Bind();
+
+  //shadowmap_shader->enable();
+
+/*
+glTranslatef(0, 0, 0);
+    glColor4f(1, 1, 1, 1.0f);
+    glBegin(GL_QUADS);
+      glTexCoord2f(0, 1);
+      glVertex2f(0, 0);
+      glTexCoord2f(1, 1);
+      glVertex2f(512, 0);//glVertex2f(128, 0);
+
+      glTexCoord2f(1, 0);
+      glVertex2f(512, 512);//glVertex2f(128, 128);
+      glTexCoord2f(0, 0);
+      glVertex2f(0, 512);//glVertex2f(0, 128);
+    glEnd();
+*/
 
     glTranslatef(256, 352, 0);
+    glColor4f(1, 1, 1, 1.0f);
+    glBegin(GL_QUADS);
+      glTexCoord2f(0, 1);
+      glVertex2f(0, 0);
+      glTexCoord2f(1, 1);
+      glVertex2f(128, 0);
+
+      glTexCoord2f(1, 0);
+      glVertex2f(128, 128);
+      glTexCoord2f(0, 0);
+      glVertex2f(0, 128);
+    glEnd();
+
+  //shadowmap_shader->disable();
+
+glPopMatrix();    
+
+// 4th test
+glPushMatrix();
+   frame_buffer2->Bind();
+
+    glTranslatef(384, 352, 0);
 
     glColor4f(1, 1, 1, 1.0f);
     glBegin(GL_QUADS);
@@ -1601,10 +2484,25 @@ glPushMatrix();
       glTexCoord2f(0, 0);
       glVertex2f(0, 128);
     glEnd();
-glPopMatrix();    
 
 
+/*
+glTranslatef(0, 0, 0);
+    glColor4f(1, 1, 1, 1.0f);
+    glBegin(GL_QUADS);
+      glTexCoord2f(0, 1);
+      glVertex2f(0, 0);
+      glTexCoord2f(1, 1);
+      glVertex2f(512, 0);//glVertex2f(128, 0);
 
+      glTexCoord2f(1, 0);
+      glVertex2f(512, 512);//glVertex2f(128, 128);
+      glTexCoord2f(0, 0);
+      glVertex2f(0, 512);//glVertex2f(0, 128);
+    glEnd();
+
+glPopMatrix();
+*/
     glEnable(GL_DEPTH_TEST);
     glDepthMask(GL_TRUE);
     ViewPerspective();

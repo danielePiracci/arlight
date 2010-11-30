@@ -35,6 +35,8 @@
     <ClCompile Include="source\renderer\opengl_mesh_renderer.cpp" />
     <ClCompile Include="source\renderer\opengl_renderer.cpp" />
     <ClCompile Include="source\renderer\renderer.cpp" />
+    <ClCompile Include="source\shader\effect.cpp" />
+    <ClCompile Include="source\shader\post_process_effect.cpp" />
     <ClCompile Include="source\shader\shader.cpp" />
     <ClCompile Include="source\shadows\shadows.cpp" />
     <ClCompile Include="source\texture\opengl_texture.cpp" />
@@ -80,6 +82,8 @@
     <ClInclude Include="source\renderer\opengl_mesh_renderer.h" />
     <ClInclude Include="source\renderer\opengl_renderer.h" />
     <ClInclude Include="source\renderer\renderer.h" />
+    <ClInclude Include="source\shader\effect.h" />
+    <ClInclude Include="source\shader\post_process_effect.h" />
     <ClInclude Include="source\shader\shader.h" />
     <ClInclude Include="source\shadows\shadows.h" />
     <ClInclude Include="source\texture\null_texture.h" />

@@ -192,6 +192,12 @@
     <ClCompile Include="source\math\mat4.cpp">
       <Filter>Source Files\math</Filter>
     </ClCompile>
+    <ClCompile Include="source\shader\post_process_effect.cpp">
+      <Filter>Source Files\shader</Filter>
+    </ClCompile>
+    <ClCompile Include="source\shader\effect.cpp">
+      <Filter>Source Files\shader</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\global.h">
@@ -325,6 +331,12 @@
     </ClInclude>
     <ClInclude Include="source\math\matrix.h">
       <Filter>Header Files\math</Filter>
+    </ClInclude>
+    <ClInclude Include="source\shader\effect.h">
+      <Filter>Header Files\shader</Filter>
+    </ClInclude>
+    <ClInclude Include="source\shader\post_process_effect.h">
+      <Filter>Header Files\shader</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

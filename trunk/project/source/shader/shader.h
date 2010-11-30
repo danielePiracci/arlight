@@ -36,8 +36,8 @@ class Shader {
 	
 	//char vertexP[2048];		//vertex program
 	//char fragmentP[2048];	//fragment program
-    char vertexP[4096];		//vertex program
-	char fragmentP[4096];	//fragment program
+    char vertexP[8096];		//vertex program
+	char fragmentP[8096];	//fragment program
 	
 	char vPath[256];		//ruta donde esta el programa del vertex shader
 	char fPath[256];		//ruta donde esta el programa del fragment shader
@@ -86,6 +86,7 @@ class Shader {
 	void setUniform3fv(char *name, float v[]);
 	void setUniform4fv(char *name, float v[]);
 
+    void setUniform1fv(char *name, int count, float v[]);
     void setUniform2fv(char *name, int count, float v[]);
     void setUniform4fv(char *name, int count, float v[]);
 

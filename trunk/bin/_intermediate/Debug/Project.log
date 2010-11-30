@@ -1,4 +1,4 @@
-﻿Build started 11/15/2010 10:40:14 PM.
+﻿Build started 11/30/2010 12:37:35 AM.
      1>Project "C:\Users\Avalon\Desktop\arlight client\project\Project.vcxproj" on node 2 (build target(s)).
      1>InitializeBuildStatus:
          Creating "C:\Users\Avalon\Desktop\arlight client\project\..\bin\_intermediate\Debug\Project.unsuccessfulbuild" because "AlwaysCreate" was specified.
@@ -30,6 +30,8 @@
          "C:\Users\Avalon\Desktop\arlight client\project\..\bin\_intermediate\Debug\opengl_mesh_renderer.obj"
          "C:\Users\Avalon\Desktop\arlight client\project\..\bin\_intermediate\Debug\opengl_renderer.obj"
          "C:\Users\Avalon\Desktop\arlight client\project\..\bin\_intermediate\Debug\renderer.obj"
+         "C:\Users\Avalon\Desktop\arlight client\project\..\bin\_intermediate\Debug\effect.obj"
+         "C:\Users\Avalon\Desktop\arlight client\project\..\bin\_intermediate\Debug\post_process_effect.obj"
          "C:\Users\Avalon\Desktop\arlight client\project\..\bin\_intermediate\Debug\shader.obj"
          "C:\Users\Avalon\Desktop\arlight client\project\..\bin\_intermediate\Debug\shadows.obj"
          "C:\Users\Avalon\Desktop\arlight client\project\..\bin\_intermediate\Debug\opengl_texture.obj"
@@ -49,4 +51,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:04.24
+Time Elapsed 00:00:04.37

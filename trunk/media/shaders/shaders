@@ -1,0 +1,16 @@
+<NotepadPlus>
+    <Session activeView="0">
+        <mainView activeIndex="8">
+            <File firstVisibleLine="34" xOffset="0" scrollWidth="847" startPos="18240" endPos="18242" selMode="0" lang="C++" filename="C:\Users\Avalon\Documents\Backup ccs\library.cpp" />
+            <File firstVisibleLine="0" xOffset="0" scrollWidth="882" startPos="449" endPos="449" selMode="0" lang="C++" filename="C:\Users\Avalon\Documents\Backup ccs\Smartmatic.cpp" />
+            <File firstVisibleLine="382" xOffset="0" scrollWidth="819" startPos="5069" endPos="5073" selMode="0" lang="C++" filename="C:\Users\Avalon\Documents\Backup ccs\STRING UTIL.cpp" />
+            <File firstVisibleLine="0" xOffset="0" scrollWidth="427" startPos="504" endPos="504" selMode="0" lang="Normal Text" filename="C:\Users\Avalon\Desktop\arlight client\media\shaders\test3.vert" />
+            <File firstVisibleLine="0" xOffset="0" scrollWidth="560" startPos="0" endPos="0" selMode="0" lang="Normal Text" filename="C:\Users\Avalon\Desktop\arlight client\media\shaders\test3.frag" />
+            <File firstVisibleLine="0" xOffset="0" scrollWidth="476" startPos="88" endPos="0" selMode="0" lang="Normal Text" filename="C:\Users\Avalon\Desktop\arlight client\media\shaders\sem.vert" />
+            <File firstVisibleLine="0" xOffset="0" scrollWidth="399" startPos="0" endPos="0" selMode="0" lang="Normal Text" filename="C:\Users\Avalon\Desktop\arlight client\media\shaders\sem.frag" />
+            <File firstVisibleLine="0" xOffset="0" scrollWidth="273" startPos="68" endPos="54" selMode="0" lang="Normal Text" filename="C:\Users\Avalon\Desktop\arlight client\media\shaders\shadow_map.vert" />
+            <File firstVisibleLine="0" xOffset="0" scrollWidth="441" startPos="376" endPos="376" selMode="0" lang="Normal Text" filename="C:\Users\Avalon\Desktop\arlight client\media\shaders\shadow_map.frag" />
+        </mainView>
+        <subView activeIndex="0" />
+    </Session>
+</NotepadPlus>

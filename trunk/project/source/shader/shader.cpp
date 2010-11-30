@@ -112,7 +112,10 @@ void Shader::openFragmentP(char* _fPath)
 //funcion para compilar y enlazar los shaders
 void Shader::load()
 {
-	resetLog();		//se reinicia el log
+    static bool first_shader = true;
+
+	if (first_shader) resetLog();		//se reinicia el log
+    first_shader = false;
 
 	//se verifica que este cargado el vertex y el fragment
 	if(strcmp(vertexP,"") == 0)
@@ -320,6 +323,10 @@ void Shader::setUniform3fv(char *name, float v[])
 void Shader::setUniform4fv(char *name, float v[])
 {
 	glUniform4fARB(glGetUniformLocationARB(hProgram,name),v[0],v[1],v[2],v[3]);
+}
+
+void Shader::setUniform1fv(char *name, int count, float v[]) {
+  glUniform1fv(glGetUniformLocationARB(hProgram,name), count, v);
 }
 
 void Shader::setUniform2fv(char *name, int count, float v[]) {
