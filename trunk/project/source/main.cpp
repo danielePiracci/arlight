@@ -84,6 +84,8 @@ std::vector<boost::shared_ptr<DissertationProject::MeshObj> > mesh_list;
 
 bool use_mesh_list = false;
 
+bool display_hud = true;
+
 void LoadMeshList();
 void DisplayMeshList();
 void ReleaseMeshList();
@@ -127,7 +129,7 @@ boost::shared_ptr<DissertationProject::PostProcessEffect> mask_effect;
 boost::shared_ptr<DissertationProject::Shader> shadowmap_shader;
 boost::shared_ptr<DissertationProject::FrameBuffer> shadowmap_framebuffer;
 boost::shared_ptr<DissertationProject::FrameBuffer> shadowmap_framebuffer2;
-void GenerateShadowMap();
+void GenerateShadowMap(GLdouble *modelView, GLdouble *projection);
 boost::shared_ptr<DissertationProject::FrameBuffer> frame_buffer2;
 
 boost::shared_ptr<DissertationProject::Shader> modulation_shader;
@@ -153,10 +155,16 @@ boost::shared_ptr<DissertationProject::PostProcessEffect> apply_shadow_effect;
 void ApplyShadowsToFinalImage();
 
 
+// Prueba para generar el render de la geometria en un frame buffer aparte.
+boost::shared_ptr<DissertationProject::FrameBuffer> scene_framebuffer;
+void RenderSceneToFrameBuffer(GLdouble *modelView, GLdouble *projection);
+
+
 //DissertationProject::vec3f lightPosition(2.0f, 3.0f,-2.0f);
 //DissertationProject::vec3f lightPosition(0.0f, 5.0f, 4.0f);
 DissertationProject::vec3f lightPosition(0.0f, 2.0f, 1.0f);
-
+//DissertationProject::vec3f lightPos(0, 0, 5.0f);
+DissertationProject::vec3f lightPos(0, 0, 8.0f);
 
 // prueba para poder hacer swap de los shaders.
 boost::shared_ptr<DissertationProject::Shader> temp_shader;
@@ -166,7 +174,7 @@ boost::shared_ptr<DissertationProject::Shader> light_shader;
 
 
 /// Prueba para desplegar HUD.
-void RenderHUD();
+void RenderHUD(int found, bool display_hud);
 void RenderRotatingMesh();
 void RenderRotatingMesh2();
 void LoadData();
@@ -468,19 +476,24 @@ static void processSpecialKeys(int key, int x, int y) {
   switch (key) {
     case GLUT_KEY_LEFT:
       lightPosition.x -= 0.1;
+      lightPos.x -= 0.1;
       break;
     case GLUT_KEY_RIGHT:
       lightPosition.x += 0.1;
+      lightPos.x += 0.1;
       break;
     case GLUT_KEY_UP:
-      lightPosition.z -= 0.1;
+      lightPosition.y -= 0.1;
+      lightPos.y -= 0.1;
       break;
     case GLUT_KEY_DOWN:
-      lightPosition.z += 0.1;
+      lightPosition.y += 0.1;
+      lightPos.y += 0.1;
       break;
     case GLUT_KEY_F1:
       //frame_test = cnt % 2 ? blur_framebuffer : modulation_framebuffer;
-        frame_test = cnt % 2 ? blur_framebuffer : apply_shadow_framebuffer;
+      //  frame_test = cnt % 2 ? blur_framebuffer : apply_shadow_framebuffer;
+      display_hud = !display_hud;
         cnt++;
       break;
     default:
@@ -702,6 +715,142 @@ void CalculateFps() {
   fps++;
 }
 
+void displayGeometry1() {
+  //glPushMatrix();
+  //  glTranslatef(0, 0, 1);
+
+  //  if (use_mesh_list) glScalef(0.25, 0.25, 0.25);
+  //  else glScalef(2, 2, 2);
+
+  //  glRotatef(90, 1, 0, 0);
+
+  //  DisplayMeshList();
+  //glPopMatrix();
+
+  // prueba para incluir las transformaciones en la matrix de la luz.
+  glPushMatrix();
+    glTranslatef(0, 0, 1);
+
+    if (use_mesh_list) glScalef(0.25, 0.25, 0.25);
+    else glScalef(2, 2, 2);
+
+    glRotatef(90, 1, 0, 0);
+
+    glActiveTexture(GL_TEXTURE7);
+    glMatrixMode(GL_TEXTURE);
+
+    glPushMatrix();
+      glTranslatef(0, 0, 1);
+      if (use_mesh_list) glScalef(0.25, 0.25, 0.25);
+      else glScalef(2, 2, 2);
+      glRotatef(90, 1, 0, 0);
+
+      DisplayMeshList();
+    glPopMatrix();
+
+    // restore to default values.
+    glActiveTexture(GL_TEXTURE0);
+    glMatrixMode(GL_MODELVIEW);
+    
+  glPopMatrix();
+}
+
+void displayGeometry2() {
+  glPushMatrix();
+    //glTranslatef(0, -1, 0);
+    //glScalef(2, 2, 2);
+    glRotatef(90, 1, 0, 0);
+
+    glActiveTexture(GL_TEXTURE7);
+    glMatrixMode(GL_TEXTURE);
+
+    glPushMatrix();
+      glRotatef(90, 1, 0, 0);
+
+      glBegin(GL_QUADS);
+        glNormal3f(0, 1, 0);
+        glVertex3f(-10, 0, -10);
+        glNormal3f(0, 1, 0);
+        glVertex3f(-10, 0, 10);
+        glNormal3f(0, 1, 0);
+        glVertex3f(10, 0, 10);
+        glNormal3f(0, 1, 0);
+        glVertex3f(10, 0, -10);
+      glEnd();
+    glPopMatrix();
+
+    // restore to default values.
+    glActiveTexture(GL_TEXTURE0);
+    glMatrixMode(GL_MODELVIEW);
+
+  glPopMatrix();
+}
+
+void defaultGometryDisplay(int geometries) {
+  boost::shared_ptr<DissertationProject::TextureManager> textures = DissertationProject::Locator::GetTextureManager();
+
+  glActiveTexture(GL_TEXTURE0);
+  //glEnable(GL_TEXTURE_2D);
+  glActiveTexture(GL_TEXTURE0);
+  textures->EnableTexture("base_map");
+
+  glActiveTexture(GL_TEXTURE1);
+  //glEnable(GL_TEXTURE_CUBE_MAP_EXT);
+  //textures->EnableTexture("env_map");
+  //textures->EnableTexture("env");
+  mask_framebuffer->Bind();
+
+  glActiveTexture(GL_TEXTURE2);
+  textures->EnableTexture("diff_env_map");
+
+  shader_test->enable();
+
+  shader_test->setUniform1i("BaseMap", 0);
+
+  // para test 2
+  shader_test->setUniform1i("DiffuseEnvMap", 2);
+  shader_test->setUniform1i("SpecularEnvMap", 1);
+
+  /// para sem.frag
+  shader_test->setUniform1i("colorMap", 0);
+  shader_test->setUniform1i("envMap", 1);
+
+  /// para multitexturing
+  shader_test->setUniform1i("myTexture1", 0);
+  shader_test->setUniform1i("myTexture2", 1);
+
+  // para cube_test.frag
+  shader_test->setUniform1i("uCubeTexture", 1);
+
+  if (geometries & (1<<0)) displayGeometry1();
+
+  shader_test->disable();
+
+  //glBindTexture(GL_TEXTURE_2D, 0);
+  //glDisable(GL_TEXTURE_2D);
+
+  //glBindTexture(GL_TEXTURE_CUBE_MAP_EXT, 0);
+  //glDisable(GL_TEXTURE_CUBE_MAP_EXT);
+
+  glActiveTexture(GL_TEXTURE2);
+  glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+  glDisable(GL_TEXTURE_CUBE_MAP);
+    
+  //glActiveTexture(GL_TEXTURE1);
+  //glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+  //glDisable(GL_TEXTURE_CUBE_MAP);
+
+  glActiveTexture(GL_TEXTURE1);
+  glBindTexture(GL_TEXTURE_2D, 0);
+  glDisable(GL_TEXTURE_2D);
+
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, 0);
+  glDisable(GL_TEXTURE_2D);
+
+  if (geometries & (1<<1)) displayGeometry2();
+}
+
 //
 // This function is called when the window needs redrawing.
 //
@@ -713,80 +862,16 @@ static void Display(void) {
   // pero de alguna manera tengo que controlar que lo que mando a pintar solo debe ser actualizado 
   // con esa ultima imagen que fue capturada, por lo que podria meter eso uno de mis frame buffers.
 
-/*
-  glDrawBuffer(GL_BACK);
-CalculateFps();
-glutSwapBuffers();
-
-return;
-*/
-
-/*
-  glMatrixMode(GL_PROJECTION);
-  glLoadIdentity();
-  gluPerspective(45, 640.0 / 480.0, 0.01, 100);
-  //glOrtho(0, 640, 0, 480, -1.0, 1.0);
-  glMatrixMode(GL_MODELVIEW);
-  glLoadIdentity();
-
-  glClearColor(0.0, 0.0, 0.0, 1.0);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-  RenderToTexture();
-
-  glLoadIdentity();
-  glColor4f(1, 1, 1, 1.0f);
-  glTranslatef(0, 0, -4);
-  static float angle = 0;
-  angle += 2;
-  glRotatef(angle, 1, 1, 0);
-
-  glEnable(GL_TEXTURE_2D);
-  glBindTexture(GL_TEXTURE_2D, 1);
-
-  DisplayMeshList();
-
-  glBindTexture(GL_TEXTURE_2D, 0);
-  glDisable(GL_TEXTURE_2D);
-
-  glutSwapBuffers();
-
-
-  CalculateFps();
-
-return;
-*/
-
-
     GLdouble p[16];
 	GLdouble m[16];
 
     // parche para que el objeto nunca desaparezca
 	static GLdouble prev_m[16];
     static GLdouble prev_p[16];
-
-
 	
 	// Select correct buffer for this context.
 	glDrawBuffer(GL_BACK);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Clear the buffers for new frame.
-
-/*glPushMatrix();
-	glMatrixMode(GL_PROJECTION);
-	glLoadMatrixd(prev_p);
-	glMatrixMode(GL_MODELVIEW);
-	// Viewing transformation.
-	glLoadIdentity();
-    glLoadMatrixd(prev_m);
-glScalef(4, 4, 4);
-glRotatef(90, 1, 0, 0);
-DisplayMeshList();
-glPopMatrix();
-
- GenerateShadowMap();
-
-glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Clear the buffers for new frame.
-*/
 	
 	arglDispImage(gARTImage, &gARTCparam, 1.0, gArglSettings);	// zoom = 1.0.
 	arVideoCapNext();
@@ -815,7 +900,7 @@ glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Clear the buffers for new
       arglCameraViewRH(gPatt_trans, m, VIEW_SCALEFACTOR);
 	  glLoadMatrixd(m);
       memcpy(prev_m, m, sizeof(m));
-      memcpy(prev_p, m, sizeof(p));
+      memcpy(prev_p, p, sizeof(p));
     } else {
       glLoadMatrixd(prev_m);
     }
@@ -827,7 +912,7 @@ glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Clear the buffers for new
     }
 
 	if (gPatt_found) {
-   // if (true) {
+    // if (true) {
 	
 		// Calculate the camera position relative to the marker.
 		// Replace VIEW_SCALEFACTOR with 1.0 to make one drawing unit equal to 1.0 ARToolKit units (usually millimeters).
@@ -836,173 +921,58 @@ glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Clear the buffers for new
 
 		// All lighting and geometry to be drawn relative to the marker goes here.
 		//DrawCube();
-
-//////////////////////////////////////////////////
-////Definicion del material
-//// TODO: ver como funciona esto bien realmente.
-///
-
-GLfloat ambient[] = {0.1f, 0.1f, 0.1f};
-GLfloat diffuse[] = {0.8f, 0.8f, 0.8f};
-GLfloat specular[] = {0.7f, 0.7f, 0.7f};
-GLfloat emission[] = {0.0f, 0.0f, 0.0f};
-
-// Ver si deberia colocarlo solo en el front o en el back tambien.
-//glMaterialfv(GL_FRONT, GL_AMBIENT, ambient);
-//glMaterialfv(GL_FRONT, GL_DIFFUSE, diffuse);
-//glMaterialfv(GL_FRONT, GL_SPECULAR, specular);
-//glMaterialfv(GL_FRONT, GL_EMISSION, emission);
-
-//glEnable ( GL_COLOR_MATERIAL ) ;
-//glColorMaterial ( GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE ) ;
-/////////////////////////////////////////////////
-
-//glEnable(GL_LIGHTING);
-//glEnable(GL_LIGHT0);
-
-GLfloat ambientl[] = {0.0f, 0.0f, 0.0f, 1.0f};
-GLfloat diffusel[] = {1.0f, 1.0f, 1.0f, 1.0f};
-GLfloat specularl[] = {1.0f, 1.0f, 1.0f, 1.0f};
-//GLfloat attenuationl[] = {1.0f, 0.0f, 0.0f};
-GLfloat attenuationl[] = {0.1f, 0.0f, 0.0f};
-GLfloat positionl[] = {4, 4, 4, 1};
-
-  /*glLightfv(GL_LIGHT0, GL_AMBIENT, ambientl);
-  glLightfv(GL_LIGHT0, GL_DIFFUSE, diffusel);
-  glLightfv(GL_LIGHT0, GL_SPECULAR, specularl);
-  glLightfv(GL_LIGHT0, GL_POSITION, positionl);
-  glLightf(GL_LIGHT0, GL_CONSTANT_ATTENUATION, attenuationl[0]);
-  glLightf(GL_LIGHT0, GL_LINEAR_ATTENUATION, attenuationl[1]);
-  glLightf(GL_LIGHT0, GL_QUADRATIC_ATTENUATION, attenuationl[2]);
-*/
-
-
-boost::shared_ptr<DissertationProject::TextureManager> textures = DissertationProject::Locator::GetTextureManager();
-
-
-shader_test->enable();
-
-glActiveTexture(GL_TEXTURE0);
-//glEnable(GL_TEXTURE_2D);
-textures->EnableTexture("base_map");
-
-
-glActiveTexture(GL_TEXTURE1);
-//glEnable(GL_TEXTURE_CUBE_MAP_EXT);
-//textures->EnableTexture("env_map");
-textures->EnableTexture("env");
-mask_framebuffer->Bind();
-
-glActiveTexture(GL_TEXTURE2);
-textures->EnableTexture("diff_env_map");
-
-//glPushMatrix();
-
-  glTranslatef(0, 0, 1);
-
-if (use_mesh_list) glScalef(0.25, 0.25, 0.25);
-else glScalef(2, 2, 2);
-
-glRotatef(90, 1, 0, 0);
-
-shader_test->setUniform1i("BaseMap", 0);
-
-// para test 2
-shader_test->setUniform1i("DiffuseEnvMap", 2);
-shader_test->setUniform1i("SpecularEnvMap", 1);
-
-/// para sem.frag
-shader_test->setUniform1i("colorMap", 0);
-shader_test->setUniform1i("envMap", 1);
-
-/// para multitexturing
-shader_test->setUniform1i("myTexture1", 0);
-shader_test->setUniform1i("myTexture2", 1);
-
-// para cube_test.frag
-shader_test->setUniform1i("uCubeTexture", 1);
-
-DisplayMeshList();
-
-
-//glPopMatrix();
-
-    //glBindTexture(GL_TEXTURE_2D, 0);
-    //glDisable(GL_TEXTURE_2D);
-
-    //glBindTexture(GL_TEXTURE_CUBE_MAP_EXT, 0);
-    //glDisable(GL_TEXTURE_CUBE_MAP_EXT);
-
-glActiveTexture(GL_TEXTURE2);
-glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
-glDisable(GL_TEXTURE_CUBE_MAP);
-    
-glActiveTexture(GL_TEXTURE1);
-glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
-glDisable(GL_TEXTURE_CUBE_MAP);
-
-//glActiveTexture(GL_TEXTURE1);
-//glBindTexture(GL_TEXTURE_2D, 0);
-//glDisable(GL_TEXTURE_2D);
-
-glActiveTexture(GL_TEXTURE0);
-glBindTexture(GL_TEXTURE_2D, 0);
-glDisable(GL_TEXTURE_2D);
-
-shader_test->disable();	
-
-//glDisable(GL_LIGHT0);
-//glDisable(GL_LIGHTING);
+        //defaultGometryDisplay();
 
 	} // gPatt_found
 	
 	// Any 2D overlays go here.
 	//none
 	
-
-  // prueba para pintar un skybox...
-  //RenderRotatingMesh2();
+    // prueba para pintar un skybox...
+    //RenderRotatingMesh2();
 
     ////////////////////////////////////
-    /// NOTE: PRueba para pintar los HUD de la aplicacion.
-    
+    // NOTE: PRueba para pintar los HUD de la aplicacion.
     // TODO: hacer que los hud se desplieguen a travez de un manager que se 
     // encargue de hacer esta funcionalidad. Tener en cuenta que el tamaño de 
     // la ventana es importante al mommento de hacer el viewOrtho, por lo que 
     // este valor deberia ser accessible desde cualquier punto de la aplicacion.
 
-    // prueba para generar el shadow map.
-   GenerateShadowMap();
-
     // Prueba para montar la imagen de la camara en una textura.
-   // RenderCameraToTexture(prev_m, p);
+    // RenderCameraToTexture(prev_m, p);
 
     // Prueba para aplicar la mascara a la textura.
     RenderMaskToTexture();
 
-//    RenderRotatingMesh();
-    /// Prueba para desplegar HUD del programa.
-    RenderHUD();
+    //RenderRotatingMesh();
+
+    // Prueba para generar el render de la escena en un buffer aparte.
+    RenderSceneToFrameBuffer(prev_m, prev_p);
 
     // Prueba para probar el shader de convolution.
     //RenderConvolution();
 
     // Prueba para render to texture.
-    RenderToTexture();
+//    RenderToTexture();
+
+    // prueba para generar el shadow map.
+    GenerateShadowMap(prev_m, prev_p);
 
     // Prueba para calcular el grayscale.
-    RenderGrayscaleToTexture();
+    //RenderGrayscaleToTexture();
 
     // prueba para generar el normal map.
-    RenderNormalMapToTexture();
+    //RenderNormalMapToTexture();
 
     /////////////////////////////////////
 
-    CalculateFps2();
+    /// Prueba para desplegar HUD del programa.
+    RenderHUD(gPatt_found, display_hud);
+
+    //CalculateFps();
+    //CalculateFps2();
 
 	glutSwapBuffers();
-
-//CalculateFps();
 }
 
 int main(int argc, char** argv)
@@ -1024,25 +994,8 @@ int main(int argc, char** argv)
 	// ----------------------------------------------------------------------------
 	// Library inits.
 	//
-
 	glutInit(&argc, argv);
 
-// prueba para asegurar que los fps no estan siendo afectados por las tareas 
-// que hago, sino mas bien que la ventana no esta siendo actualizada cuando 
-// la camara no le envia una nueva imagen.
-/*glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
-		glutInitWindowSize(prefWidth, prefHeight);
-		glutCreateWindow(argv[0]);
-	glutDisplayFunc(Display);
-    glutIdleFunc(Display);
-	glutReshapeFunc(Reshape);
-	//glutVisibilityFunc(Visibility);
-	glutKeyboardFunc(Keyboard);
-	if (GLEW_OK != glewInit()) 
-       printf("glewinit fail!.\n");
-
-glutMainLoop();
-return 0;*/
 	// ----------------------------------------------------------------------------
 	// Hardware setup.
 	//
@@ -1144,8 +1097,8 @@ void LoadData() {
   mesh_test = boost::shared_ptr<DissertationProject::MeshObj> (new DissertationProject::MeshObj());
  // mesh_test->Load("../../media/mesh/cube.obj");
  // mesh_test->Load("../../media/mesh/sphere.obj");
- // mesh_test->Load("../../media/mesh/apple.obj");
-  mesh_test->Load("../../media/mesh/bigguy.obj");
+ //  mesh_test->Load("../../media/mesh/apple.obj");
+   mesh_test->Load("../../media/mesh/bigguy.obj");
   LoadMeshList();
 
                                                                                                                                                                                                          
@@ -1254,7 +1207,8 @@ void LoadData() {
   modulation_shader->openVertexP("../../media/shaders/modulation.vert");
   modulation_shader->openFragmentP("../../media/shaders/modulation.frag");
   modulation_shader->load();  
-  modulation_framebuffer = boost::shared_ptr<DissertationProject::FrameBuffer> (new DissertationProject::FrameBuffer(1024, 1024, GL_BGRA, true));
+  //modulation_framebuffer = boost::shared_ptr<DissertationProject::FrameBuffer> (new DissertationProject::FrameBuffer(1024, 1024, GL_BGRA, true));
+  modulation_framebuffer = boost::shared_ptr<DissertationProject::FrameBuffer> (new DissertationProject::FrameBuffer(640, 480, GL_BGRA, true));
 
   // TODO: recordar colocar este chequeo en los shaders!!.
   //if (glCreateShaderObjectARB == 0)
@@ -1272,9 +1226,11 @@ void LoadData() {
   blur_shader->openVertexP("../../media/shaders/blur.vert");
   blur_shader->openFragmentP("../../media/shaders/blur.frag");
   blur_shader->load();  
-  blur_framebuffer = boost::shared_ptr<DissertationProject::FrameBuffer> (new DissertationProject::FrameBuffer(1024, 1024, GL_BGRA, true));
+  //blur_framebuffer = boost::shared_ptr<DissertationProject::FrameBuffer> (new DissertationProject::FrameBuffer(1024, 1024, GL_BGRA, true));
+  blur_framebuffer = boost::shared_ptr<DissertationProject::FrameBuffer> (new DissertationProject::FrameBuffer(640, 480, GL_BGRA, true));
   blur_effect = boost::shared_ptr<DissertationProject::PostProcessEffect> (new DissertationProject::PostProcessEffect(blur_shader, blur_framebuffer));
-  blur_framebuffer_tmp = boost::shared_ptr<DissertationProject::FrameBuffer> (new DissertationProject::FrameBuffer(1024, 1024, GL_BGRA, true));
+  //blur_framebuffer_tmp = boost::shared_ptr<DissertationProject::FrameBuffer> (new DissertationProject::FrameBuffer(1024, 1024, GL_BGRA, true));
+  blur_framebuffer_tmp = boost::shared_ptr<DissertationProject::FrameBuffer> (new DissertationProject::FrameBuffer(640, 480, GL_BGRA, true));
 
 
   frame_test = blur_framebuffer;
@@ -1284,86 +1240,11 @@ void LoadData() {
   apply_shadow_shader->openVertexP("../../media/shaders/apply_shadow.vert");
   apply_shadow_shader->openFragmentP("../../media/shaders/apply_shadow.frag");
   apply_shadow_shader->load();  
-  apply_shadow_framebuffer = boost::shared_ptr<DissertationProject::FrameBuffer> (new DissertationProject::FrameBuffer(1024, 1024, GL_BGRA, true));
+  //apply_shadow_framebuffer = boost::shared_ptr<DissertationProject::FrameBuffer> (new DissertationProject::FrameBuffer(1024, 1024, GL_BGRA, true));
+  apply_shadow_framebuffer = boost::shared_ptr<DissertationProject::FrameBuffer> (new DissertationProject::FrameBuffer(640, 480, GL_BGRA, true));
   apply_shadow_effect = boost::shared_ptr<DissertationProject::PostProcessEffect> (new DissertationProject::PostProcessEffect(apply_shadow_shader, apply_shadow_framebuffer));
   
-
-}
-
-void GenerateShadowMap() {
-
-/*shadowmap_framebuffer->Bind();
-glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, 640, 480);
-return;
-*/
-
-/*
-frame_buffer->Enable();
-
-shadowmap_framebuffer->Bind();
-glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, 256, 256);
-
-frame_buffer->Disable();
-*/
-return;
-
-  shadowmap_framebuffer->Enable();
-
-  glLoadIdentity();
-    gluPerspective(45.0f, 1.0f, 1.0f, 20.0f);
-
-    //Depth states
-    glClearDepth(1.0f);
-    glDepthFunc(GL_LEQUAL);
-    glEnable(GL_DEPTH_TEST);
-
-    glDepthMask(GL_TRUE);
-
-	// Clear previous frame values
-	//glClear( GL_DEPTH_BUFFER_BIT);
-glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	
-	//Disable color rendering, we only want to write to the Z-Buffer
-//	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE); 
-
-	// Culling switching, rendering only backface, this is done to avoid self-shadowing
-	glCullFace(GL_FRONT);
-
-  static float angle = 0;
-  angle += 7;
-  glRotatef(angle, 1, 1, 1);
-
-  DisplayMeshList();
-
-  shadowmap_framebuffer->Disable();
-
-    //Enabling color write (previously disabled for light POV z-buffer rendering)
-	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE); 
-	
-    glCullFace(GL_BACK);
-
-	// Clear previous frame values
-//	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-
-  //shadowmap_framebuffer->Enable();
-
-  //glClearColor(0, 1, 0, 1);
-  //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-//gluPerspective(45, 1.0, 0.01, 8);
-//
-//  //glColor4f(1, 1, 1, 1.0f);
-//glColor4f(0, 0, 0, 1.0f);
-//  glTranslatef(0, 0, -4);
-//
-//  static float angle = 0;
-//  angle += 7;
-//  glRotatef(angle, 1, 1, 1);
-//
-//  DisplayMeshList();
-//
-//  shadowmap_framebuffer->Disable();
+  scene_framebuffer = boost::shared_ptr<DissertationProject::FrameBuffer> (new DissertationProject::FrameBuffer(640, 480, GL_BGRA, true));
 }
 
 void RenderRotatingMesh2() {
@@ -1613,7 +1494,6 @@ void RenderCameraToTexture(GLdouble *m, GLdouble *p) {
   glDisable(GL_TEXTURE_2D);
  */
 
-
 }
 
 /////////////////////////////////////////////////
@@ -1747,10 +1627,8 @@ void ApplyBlurEffectToShadows() {
 
   blur_effect->Enable();
     blur_effect->shader()->setUniform1i("base_map", 0);
-
     blur_effect->shader()->setUniform1fv("weight", 16, &h_weight[0]);
     blur_effect->shader()->setUniform2fv("offset", 16, &h_offset[0][0]);
-
   blur_effect->Disable();
 
   glActiveTexture(GL_TEXTURE0);
@@ -1776,10 +1654,8 @@ void ApplyBlurEffectToShadows() {
 
   blur_effect->Enable();
     blur_effect->shader()->setUniform1i("base_map", 0);
-
     blur_effect->shader()->setUniform1fv("weight", 16, &v_weight[0]);
     blur_effect->shader()->setUniform2fv("offset", 16, &v_offset[0][0]);
-
   blur_effect->Disable();
 
   glActiveTexture(GL_TEXTURE0);
@@ -1788,7 +1664,8 @@ void ApplyBlurEffectToShadows() {
 
 void ApplyShadowsToFinalImage() {
   glActiveTexture(GL_TEXTURE0);
-  frame_buffer->Bind();
+  //frame_buffer->Bind();
+  scene_framebuffer->Bind();
 
   glActiveTexture(GL_TEXTURE1);
   blur_framebuffer_tmp->Bind();
@@ -1984,7 +1861,7 @@ frame_buffer->Disable();
   glMatrixMode(GL_MODELVIEW);
   ////
 
-
+/*
 frame_buffer2->Enable();
   glClearColor(0, 0, 0, 1);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -2007,15 +1884,10 @@ glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE_ARB, GL_COMPARE_R_TO_TEXT
 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC_ARB, GL_LEQUAL);
 glTexParameteri(GL_TEXTURE_2D, GL_DEPTH_TEXTURE_MODE_ARB, GL_INTENSITY);
 
-
    shadowmap_shader->enable();
 
    mask_shader->setUniform1i("shadow_map", 0); // utilizar depth map instead.
 
-/*  static float angle2 = 0;
-  angle2 += 1;
-  glRotatef(angle2, 1, 1, 1);
-*/
    //light_shader->enable();
      DrawShadowTestScene(angle2);
    //light_shader->disable();
@@ -2024,7 +1896,7 @@ glTexParameteri(GL_TEXTURE_2D, GL_DEPTH_TEXTURE_MODE_ARB, GL_INTENSITY);
    glBindTexture(GL_TEXTURE_2D, 0);
 
 frame_buffer2->Disable();
-
+*/
 
 //////////////////// prueba para generar la imagen de modulation
 // Esta parte deberia estar dentro de un metodo que sea el que genera el shadow map.
@@ -2042,6 +1914,10 @@ modulation_framebuffer->Enable();
 
    shadowmap_framebuffer->Bind();
 
+// NOTE: si quiero que no se afecte la textura con el depth buffer quitar estas lineas...
+glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE_ARB, GL_COMPARE_R_TO_TEXTURE_ARB);
+glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC_ARB, GL_LEQUAL);
+glTexParameteri(GL_TEXTURE_2D, GL_DEPTH_TEXTURE_MODE_ARB, GL_INTENSITY);
 
    modulation_shader->enable();
 
@@ -2132,6 +2008,228 @@ glBindTexture(GL_TEXTURE_2D, 0);
   frame_buffer->Disable();
 }
 
+// The function receive the current modelview and projection matrix of the camera.
+void GenerateShadowMap(GLdouble *modelView, GLdouble *projection) {
+  GLfloat lightProjectionMatrix[16], lightViewMatrix[16];
+
+  //DissertationProject::vec3f lightPos(0, -2.0f, 4.0f);
+
+  static float dir = -1;
+  static float cnt = -2;
+  lightPos.x = 3 * std::sin(cnt);
+  lightPos.y = 3 * std::cos(cnt);
+
+  cnt += 0.0125 * dir;
+  if (cnt <= -4) dir = 1;
+  if (cnt >= -2) dir = -1;
+
+  // Init matrix's
+  //glMatrixMode(GL_PROJECTION);
+glMatrixMode(GL_MODELVIEW);
+  //glLoadMatrixf(lightProjectionMatrix);
+  //glLoadMatrixd(projection);
+  glLoadIdentity();
+  gluPerspective(45.0f, 1.0f, 1.0f, 20.0f);
+  glGetFloatv(GL_MODELVIEW_MATRIX, lightProjectionMatrix);
+
+  glMatrixMode(GL_MODELVIEW);
+  //glLoadMatrixf(lightViewMatrix);
+  glLoadIdentity();
+  //glLoadMatrixd(modelView);
+  //glTranslatef(0, 0, -5);
+  
+ gluLookAt(lightPos.x, lightPos.y, lightPos.z,
+  0.0f, 0.0f, 0.0f,
+  0.0f, 1.0f, 0.0f);
+
+  //glTranslatef(0, -2, 0);
+
+  //glMultMatrixd(modelView);
+  
+  // definir posicion de la luz con respecto a la escena.
+//  glRotatef(45, 1, 0, 0);
+
+//  glTranslatef(0, -1, -4);
+//  glRotatef(-90, 1, 0, 0);
+
+  glGetFloatv(GL_MODELVIEW_MATRIX, lightViewMatrix);
+
+/*  glMatrixMode(GL_MODELVIEW);
+  glLoadIdentity();
+  gluPerspective(45.0f, 1.0f, 1.0f, 20.0f);
+
+  glLoadMatrixd(modelView);
+*/
+
+  frame_buffer->Enable();
+
+    glClearColor(0, 0, 0, 1);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    glMatrixMode(GL_PROJECTION);
+    glLoadMatrixf(lightProjectionMatrix);
+
+    glMatrixMode(GL_MODELVIEW);
+    glLoadMatrixf(lightViewMatrix);
+
+  // Draw back faces into the shadow map
+  glEnable(GL_CULL_FACE);
+  glCullFace(GL_FRONT);
+
+  // Disable color writes, and use flat shading for speed
+  glShadeModel(GL_FLAT);
+  glColorMask(0, 0, 0, 0);
+
+  glColor3f(1, 0, 0);
+  displayGeometry1();
+  glColor3f(1, 1, 1);
+  displayGeometry2();
+
+shadowmap_framebuffer->Bind();
+glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, shadowmap_framebuffer->width(), shadowmap_framebuffer->height());
+
+shadowmap_framebuffer2->Bind();
+glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, shadowmap_framebuffer->width(), shadowmap_framebuffer->height());
+glBindTexture(GL_TEXTURE_2D, 0);
+
+  // restore states
+  glCullFace(GL_BACK);
+  glDisable(GL_CULL_FACE);
+
+  glShadeModel(GL_SMOOTH);
+  glColorMask(1, 1, 1, 1);
+
+/*
+    //2nd pass - Draw from camera's point of view
+    // esta parte tiene que hacerce con otro frame buffer que sea de la misma 
+    // resolucion de la pantalla.
+    //glClearColor(0, 1, 0, 1);
+    //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClear(GL_DEPTH_BUFFER_BIT); 
+    //glMatrixMode(GL_PROJECTION);
+    //glLoadMatrixd(projection);
+
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluPerspective(45.0f, 1.0f, 1.0f, 100.0f);
+
+    glMatrixMode(GL_MODELVIEW);
+    glLoadMatrixd(modelView);
+
+   //light_shader->enable();
+   //  DrawShadowTestScene(angle2);
+   //light_shader->disable();
+
+  
+  light_shader->enable();
+    glColor3f(1, 0, 0);
+    displayGeometry1();
+    glColor3f(1, 1, 1);
+    displayGeometry2();
+  light_shader->disable();
+*/
+
+  frame_buffer->Disable(); 
+
+  // TODO: hacer un blend entre el render de la geometria y la imagen de background. y luego copiar esa imagen de nuevo.
+  // o simplemente hacer el rende completamente en el frame buffer principal.
+
+
+  /// Third past, in order to have the second one in a different texture. # en 
+  /// otras palabras no hace falta realizar la segunda pasada.
+  ////////
+  // Setup texture matrix.
+  const GLfloat bias[16] = {0.5, 0.0, 0.0, 0.0,
+                            0.0, 0.5, 0.0, 0.0,
+                            0.0, 0.0, 0.5, 0.0,
+                            0.5, 0.5, 0.5, 1.0};
+
+  glActiveTexture(GL_TEXTURE7);
+  glMatrixMode(GL_TEXTURE);
+  glLoadIdentity();
+  glLoadMatrixf(bias);
+
+  // concatening all matrix into one.
+  glMultMatrixf(lightProjectionMatrix);
+  glMultMatrixf(lightViewMatrix);
+  //glRotatef(angle2, 0, 1, 0);
+
+  // restore to default values.
+  glActiveTexture(GL_TEXTURE0);
+
+  glMatrixMode(GL_MODELVIEW);
+  ////
+
+  modulation_framebuffer->Enable();
+    glClearColor(1, 1, 1, 1);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    // TODO: aca el render debe ser con el aspect ratio adecuado.
+    glMatrixMode(GL_PROJECTION);
+    glLoadMatrixd(projection);
+    //glMatrixMode(GL_PROJECTION);
+    //glLoadIdentity();
+    //gluPerspective(45.0f, 1.0f, 1.0f, 100.0f);
+
+
+    glMatrixMode(GL_MODELVIEW);
+    //glLoadMatrixf(cameraViewMatrix);
+    glLoadIdentity();
+    glLoadMatrixd(modelView);
+
+    glActiveTexture(GL_TEXTURE0);
+    shadowmap_framebuffer->Bind();
+
+    // NOTE: si quiero que no se afecte la textura con el depth buffer quitar estas lineas...
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE_ARB, GL_COMPARE_R_TO_TEXTURE_ARB);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC_ARB, GL_LEQUAL);
+    glTexParameteri(GL_TEXTURE_2D, GL_DEPTH_TEXTURE_MODE_ARB, GL_INTENSITY);
+
+    modulation_shader->enable();
+      modulation_shader->setUniform1i("shadow_map", 0); // utilizar depth map instead.
+      //DrawShadowTestScene(angle2);
+      glColor3f(1, 0, 0);
+      displayGeometry1();
+      glColor3f(1, 1, 1);
+      displayGeometry2();
+    modulation_shader->disable();
+
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+  modulation_framebuffer->Disable();
+
+
+  // Aplicar el filtro blur a la textura con las sombras.
+  ApplyBlurEffectToShadows();
+
+  // Componer la imagen final, agregar las sombras al objeto final.
+  ApplyShadowsToFinalImage();
+}
+
+void RenderSceneToFrameBuffer(GLdouble *modelView, GLdouble *projection) {
+  scene_framebuffer->Enable();
+    glClearColor(0, 0, 0, 0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+//glMatrixMode(GL_MODELVIEW);
+//glLoadIdentity();
+    const GLfloat kAspect = scene_framebuffer->width() * 1.0 / scene_framebuffer->height();
+    gluPerspective(45.0f, kAspect, 0.1f, 100.0f);
+
+    glMatrixMode(GL_PROJECTION);
+    glLoadMatrixd(projection);
+
+    glMatrixMode(GL_MODELVIEW);
+    glLoadMatrixd(modelView);
+
+    glColor3f(1, 1, 1);
+    defaultGometryDisplay(1);
+
+  scene_framebuffer->Disable();
+}
+
 void RenderMaskToTexture() {
   glActiveTexture(GL_TEXTURE0);
   camera_framebuffer2->Bind();
@@ -2140,13 +2238,8 @@ void RenderMaskToTexture() {
   DissertationProject::Locator::GetTextureManager()->EnableTexture("mask");
 
   mask_effect->Enable();
-
     mask_effect->shader()->setUniform1i("base_map", 0);
-    mask_effect->shader()->setUniform1i("mask_map", 1);
-
-    //mask_shader->setUniform1i("base_map", 0);
-    //mask_shader->setUniform1i("mask_map", 1);
-  
+    mask_effect->shader()->setUniform1i("mask_map", 1);  
   mask_effect->Disable();
 
   glActiveTexture(GL_TEXTURE1);
@@ -2154,59 +2247,6 @@ void RenderMaskToTexture() {
 
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, 0);
-
-// NOTE: El codigo anterior es totalmente equivalente al siguiente.
-/*
-  mask_framebuffer->Enable();
-
-  glMatrixMode(GL_PROJECTION);
-  glLoadIdentity();
-
-  // verificar si no tengo que colocar esto de otra manera.
-  const int kWidth = mask_framebuffer->width();
-  const int kHeight = mask_framebuffer->height();
-  glOrtho(0, kWidth, kHeight, 0, -1, 1);
-
-  glClearColor(0, 0, 0, 1);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-  glMatrixMode(GL_MODELVIEW);
-  glLoadIdentity();
-
-  glActiveTexture(GL_TEXTURE0);
-  //normalmap_framebuffer->Bind();
-  camera_framebuffer2->Bind();
-
-  glActiveTexture(GL_TEXTURE1);
-  DissertationProject::Locator::GetTextureManager()->EnableTexture("mask");
-
-  mask_shader->enable();
-
-  mask_shader->setUniform1i("base_map", 0);
-  mask_shader->setUniform1i("mask_map", 1);
-  
-    glColor4f(1, 1, 1, 1.0f);
-    glBegin(GL_QUADS);
-      glTexCoord2f(0, 1);
-      glVertex2f(0, 0);
-      glTexCoord2f(1, 1);
-      glVertex2f(kWidth, 0);
-      glTexCoord2f(1, 0);
-      glVertex2f(kWidth, kHeight);
-      glTexCoord2f(0, 0);
-      glVertex2f(0, kHeight);
-    glEnd();
-
-  mask_shader->disable();
-
-  glActiveTexture(GL_TEXTURE1);
-  glBindTexture(GL_TEXTURE_2D, 0);
-
-  glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, 0);
-
-  mask_framebuffer->Disable();
-*/
 }
 
 void RenderNormalMapToTexture() {
@@ -2214,64 +2254,13 @@ void RenderNormalMapToTexture() {
   grayscale_framebuffer->Bind();
 
   normalmap_effect->Enable();
-
     normalmap_effect->shader()->setUniform1i("height_map", 0);
     normalmap_effect->shader()->setUniform1f("height_map_width", grayscale_framebuffer->width());
     normalmap_effect->shader()->setUniform1f("height_map_height", grayscale_framebuffer->height());
-
-    //normalmap_shader->setUniform1i("height_map", 0);
-    //normalmap_shader->setUniform1f("height_map_width", grayscale_framebuffer->width());
-    //normalmap_shader->setUniform1f("height_map_height", grayscale_framebuffer->height());
-
   normalmap_effect->Disable();
 
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, 0);
-/*
-return;
-
-  // NOTE: deberia definir el active texture con estas operaciones, 
-  // simplemente para estar seguro sobre cual estoy trabajando.
-  grayscale_framebuffer->Bind();
-
-  normalmap_framebuffer->Enable();
-
-  glMatrixMode(GL_PROJECTION);
-  glLoadIdentity();
-
-  // verificar si no tengo que colocar esto de otra manera.
-  const int kWidth = normalmap_framebuffer->width();
-  const int kHeight = normalmap_framebuffer->height();
-  glOrtho(0, kWidth, kHeight, 0, -1, 1);
-
-  glClearColor(0, 0, 0, 1);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-  glMatrixMode(GL_MODELVIEW);
-  glLoadIdentity();		
-
-  normalmap_shader->enable();
-
-  normalmap_shader->setUniform1i("height_map", 0);
-  normalmap_shader->setUniform1f("height_map_width", grayscale_framebuffer->width());
-  normalmap_shader->setUniform1f("height_map_height", grayscale_framebuffer->height());
-
-    glColor4f(1, 1, 1, 1.0f);
-    glBegin(GL_QUADS);
-      glTexCoord2f(0, 1);
-      glVertex2f(0, 0);
-      glTexCoord2f(1, 1);
-      glVertex2f(kWidth, 0);
-      glTexCoord2f(1, 0);
-      glVertex2f(kWidth, kHeight);
-      glTexCoord2f(0, 0);
-      glVertex2f(0, kHeight);
-    glEnd();
-
-  normalmap_shader->disable();
-
-  normalmap_framebuffer->Disable();
-*/
 }
 
 void RenderGrayscaleToTexture() {
@@ -2280,240 +2269,121 @@ void RenderGrayscaleToTexture() {
 
   grayscale_effect->Enable();
     grayscale_effect->shader()->setUniform1i("base_map", 0);
-    //grayscale_shader->setUniform1i("base_map", 0);
   grayscale_effect->Disable();
 
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, 0);
-
-/*
-  //DissertationProject::Locator::GetTextureManager()->EnableTexture("base_map");
-  //camera_framebuffer->Bind();
-  camera_framebuffer2->Bind();
-
-  grayscale_framebuffer->Enable();
-
-  grayscale_shader->enable();
-  
-  convolution_shader->setUniform1i("base_map", 0);
-
-  // Escribir de alguna manera estas transformaciones mas eficientemente.
-  // Lo que podria hacer es meter estas cosas dentro de una clase, algo 
-  // como post-processing effect.... pensar!...
-  glMatrixMode(GL_PROJECTION);
-  glLoadIdentity();
-
-  // verificar si no tengo que colocar esto de otra manera.
-  const int kWidth = grayscale_framebuffer->width();
-  const int kHeight = grayscale_framebuffer->height();
-  glOrtho(0, kWidth, kHeight, 0, -1, 1);
-  //glOrtho(0, kWidth, 0, kHeight, -1, 1);
-
-  glClearColor(0, 0, 0, 1);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-//    glTranslatef(0, 352, 0);
-    //glTranslatef(0, kHeight, 0);
-
-    glColor4f(1, 1, 1, 1.0f);
-    glBegin(GL_QUADS);
-      glTexCoord2f(0, 1);
-      glVertex2f(0, 0);
-      glTexCoord2f(1, 1);
-      glVertex2f(kWidth, 0);
-      glTexCoord2f(1, 0);
-      glVertex2f(kWidth, kHeight);
-      glTexCoord2f(0, 0);
-      glVertex2f(0, kHeight);
-    glEnd();
-
-  glMatrixMode(GL_MODELVIEW);
-  glLoadIdentity();			
-
-  grayscale_shader->disable();
-
-  grayscale_framebuffer->Disable();
-
-  glBindTexture(GL_TEXTURE_2D, 0);
-*/
 }
 
+/*void RenderQuad(int x, int y, int size) {
+  glColor4f(1, 1, 1, 1.0f);
+
+  glPushMatrix();
+    glTranslatef(x, y, 0);    
+    glBegin(GL_QUADS);
+      glTexCoord2f(0, 1);
+      glVertex2f(0, 0);
+      glTexCoord2f(1, 1);
+      glVertex2f(size, 0);
+      glTexCoord2f(1, 0);
+      glVertex2f(size, size);
+      glTexCoord2f(0, 0);
+      glVertex2f(0, size);
+    glEnd();
+  glPopMatrix();    
+}
+*/
+
+void RenderQuad(int x, int y, int width, int height) {
+  glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+
+  glPushMatrix();
+    glTranslatef(x, y, 0);    
+    glBegin(GL_QUADS);
+      glTexCoord2f(0, 1);
+      glVertex2f(0, 0);
+      glTexCoord2f(1, 1);
+      glVertex2f(width, 0);
+      glTexCoord2f(1, 0);
+      glVertex2f(width, height);
+      glTexCoord2f(0, 0);
+      glVertex2f(0, height);
+    glEnd();
+  glPopMatrix();    
+}
+
+
 /// Test to render a HUD...
-void RenderHUD() {
+void RenderHUD(int found, bool display_hud) {
 
-boost::shared_ptr<DissertationProject::TextureManager> textures = DissertationProject::Locator::GetTextureManager();
+  boost::shared_ptr<DissertationProject::TextureManager> textures = DissertationProject::Locator::GetTextureManager();
+  
+  glEnable(GL_TEXTURE_2D);
 
-//shader_test->enable();
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    glEnable(GL_TEXTURE_2D);
-//    glBindTexture(GL_TEXTURE_2D, 1);
-    //textures->EnableTexture("logo");
-    //textures->EnableTexture("env");
-    textures->EnableTexture("base_map");
-
-    //frame_buffer->Bind();
-    camera_framebuffer2->Bind();
-
-    glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  glDisable(GL_DEPTH_TEST);
+  glDepthMask(GL_FALSE);
+  ViewOrtho(640, 480);
 
 
-    glDisable(GL_DEPTH_TEST);
-    glDepthMask(GL_FALSE);
-    ViewOrtho(640, 480);
-    
-glPushMatrix();
-  mask_framebuffer->Bind();
+  // Render geometry over the layer.
+  //if (found) {
+    //scene_framebuffer->Bind();
+    apply_shadow_framebuffer->Bind();
+    //RenderQuad(512, 352, 128);
+    RenderQuad(0, 0, 640, 480);
+  //}
 
-    glTranslatef(0, 352, 0);
+  if (display_hud) {
+  // 1st test.
+  //textures->EnableTexture("logo");
+  //textures->EnableTexture("env");
+  //textures->EnableTexture("base_map");
+  //mask_framebuffer->Bind();
+  //frame_buffer->Bind();
+  //camera_framebuffer2->Bind();
+  shadowmap_framebuffer2->Bind();
+  RenderQuad(0, 352, 128, 128);
 
-    glColor4f(1, 1, 1, 1.0f);
-    glBegin(GL_QUADS);
-      glTexCoord2f(0, 1);
-      glVertex2f(0, 0);
-      glTexCoord2f(1, 1);
-      glVertex2f(128, 0);
-      glTexCoord2f(1, 0);
-      glVertex2f(128, 128);
-      glTexCoord2f(0, 0);
-      glVertex2f(0, 128);
-
-/*      glTexCoord2f(coord.x, coord.y + 0.2);
-      glVertex2f(0, 0);
-      glTexCoord2f(coord.x + 0.2, coord.y + 0.2);
-      glVertex2f(128, 0);
-      glTexCoord2f(coord.x + 0.2, coord.y);
-      glVertex2f(128, 128);
-      glTexCoord2f(coord.x, coord.y);
-      glVertex2f(0, 128);
-*/
-/*
-      glTexCoord2f(bb.min_point().x, bb.max_point().y);
-      glVertex2f(0, 0);
-      glTexCoord2f(bb.max_point().x, bb.max_point().y);
-      glVertex2f(128, 0);
-      glTexCoord2f(bb.max_point().x, bb.min_point().y);
-      glVertex2f(128, 128);
-      glTexCoord2f(bb.min_point().x, bb.min_point().y);
-      glVertex2f(0, 128);
-*/
-    glEnd();
-glPopMatrix();    
-
-glPushMatrix();
+  // 2nd test.
   //grayscale_framebuffer->Bind();
-   //mask_framebuffer->Bind();
-   frame_buffer->Bind();
-  // modulation_framebuffer->Bind();
+  //mask_framebuffer->Bind();
+  //frame_buffer->Bind();
+  //modulation_framebuffer->Bind();
+  //blur_framebuffer->Bind();
+  modulation_framebuffer->Bind();
+  RenderQuad(128, 352, 128, 128);
 
-    glTranslatef(128, 352, 0);
-
-    glColor4f(1, 1, 1, 1.0f);
-    glBegin(GL_QUADS);
-      glTexCoord2f(0, 1);
-      glVertex2f(0, 0);
-      glTexCoord2f(1, 1);
-      glVertex2f(128, 0);
-      glTexCoord2f(1, 0);
-      glVertex2f(128, 128);
-      glTexCoord2f(0, 0);
-      glVertex2f(0, 128);
-    glEnd();
-glPopMatrix();    
-
-
-glPushMatrix();
+  // 3rd test.
   //grayscale_framebuffer->Bind();
   //normalmap_framebuffer->Bind();
   //shadowmap_framebuffer2->Bind();
   //modulation_framebuffer->Bind();
   //blur_framebuffer->Bind();
-  frame_test->Bind();
-  // frame_buffer->Bind();
+  //frame_test->Bind();
+  //frame_buffer->Bind();
+  //RenderQuad(0, 0, 512);
+  //frame_buffer->Bind();
+  scene_framebuffer->Bind();
+  RenderQuad(256, 352, 128, 128);
 
-  //shadowmap_shader->enable();
+  // 4th test.
+  //frame_buffer2->Bind();
+  apply_shadow_framebuffer->Bind();
+  RenderQuad(384, 352, 128, 128);
+  //RenderQuad(0, 0, 512);
+  }
 
-/*
-glTranslatef(0, 0, 0);
-    glColor4f(1, 1, 1, 1.0f);
-    glBegin(GL_QUADS);
-      glTexCoord2f(0, 1);
-      glVertex2f(0, 0);
-      glTexCoord2f(1, 1);
-      glVertex2f(512, 0);//glVertex2f(128, 0);
+  glEnable(GL_DEPTH_TEST);
+  glDepthMask(GL_TRUE);
+  ViewPerspective();
 
-      glTexCoord2f(1, 0);
-      glVertex2f(512, 512);//glVertex2f(128, 128);
-      glTexCoord2f(0, 0);
-      glVertex2f(0, 512);//glVertex2f(0, 128);
-    glEnd();
-*/
+  glDisable(GL_BLEND);
 
-    glTranslatef(256, 352, 0);
-    glColor4f(1, 1, 1, 1.0f);
-    glBegin(GL_QUADS);
-      glTexCoord2f(0, 1);
-      glVertex2f(0, 0);
-      glTexCoord2f(1, 1);
-      glVertex2f(128, 0);
-
-      glTexCoord2f(1, 0);
-      glVertex2f(128, 128);
-      glTexCoord2f(0, 0);
-      glVertex2f(0, 128);
-    glEnd();
-
-  //shadowmap_shader->disable();
-
-glPopMatrix();    
-
-// 4th test
-glPushMatrix();
-   frame_buffer2->Bind();
-
-    glTranslatef(384, 352, 0);
-
-    glColor4f(1, 1, 1, 1.0f);
-    glBegin(GL_QUADS);
-      glTexCoord2f(0, 1);
-      glVertex2f(0, 0);
-      glTexCoord2f(1, 1);
-      glVertex2f(128, 0);
-      glTexCoord2f(1, 0);
-      glVertex2f(128, 128);
-      glTexCoord2f(0, 0);
-      glVertex2f(0, 128);
-    glEnd();
-
-
-/*
-glTranslatef(0, 0, 0);
-    glColor4f(1, 1, 1, 1.0f);
-    glBegin(GL_QUADS);
-      glTexCoord2f(0, 1);
-      glVertex2f(0, 0);
-      glTexCoord2f(1, 1);
-      glVertex2f(512, 0);//glVertex2f(128, 0);
-
-      glTexCoord2f(1, 0);
-      glVertex2f(512, 512);//glVertex2f(128, 128);
-      glTexCoord2f(0, 0);
-      glVertex2f(0, 512);//glVertex2f(0, 128);
-    glEnd();
-
-glPopMatrix();
-*/
-    glEnable(GL_DEPTH_TEST);
-    glDepthMask(GL_TRUE);
-    ViewPerspective();
-
-    glDisable(GL_BLEND);
-
-    glBindTexture(GL_TEXTURE_2D, 0);
-    glDisable(GL_TEXTURE_2D);
-
-//shader_test->disable();
-
+  glBindTexture(GL_TEXTURE_2D, 0);
+  glDisable(GL_TEXTURE_2D);
 }
 
 void LoadMeshList() {
@@ -2546,15 +2416,3 @@ void DisplayMeshList() {
     mesh_test->drawSurface(0);
   }
 }
-
-/*
-#include "cstdio"
-
-int main() {
-  printf("Hola Mundo!!!\n");
-
-  return 0;
-}
-*/
-
-
