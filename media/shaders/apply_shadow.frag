@@ -12,6 +12,7 @@ void main() {
   vec4 shadow_color = texture2D(shadow_map, gl_TexCoord[0].st);
   
   //
-  gl_FragColor = base_color * shadow_color;
-  //gl_FragColor = vec4(1, 0, 0, 1);
+  //gl_FragColor = base_color * shadow_color;
+  if (shadow_color.r != 1 && base_color.a == 0) gl_FragColor = vec4(0, 0, 0, 1 - shadow_color);
+  else gl_FragColor = base_color * shadow_color;
 }
