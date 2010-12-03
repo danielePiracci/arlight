@@ -43,6 +43,8 @@ class FrameBuffer {
   /// \brief Accessor method for the framebuffer height.
   inline int height() const { return height_; }
 
+  inline float GetAspect() const { return width_ * 1.0 / height_; }
+   
  private:
   /// \brief frame buffer width.
   int width_;
