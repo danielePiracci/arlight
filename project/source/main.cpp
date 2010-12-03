@@ -80,6 +80,8 @@ DissertationProject::OpenGLRenderer renderer;
 //DissertationProject::MeshObj mesh_test;
 boost::shared_ptr<DissertationProject::MeshObj> mesh_test;
 
+boost::shared_ptr<DissertationProject::MeshObj> mesh_sphere;
+
 std::vector<boost::shared_ptr<DissertationProject::MeshObj> > mesh_list;
 
 bool use_mesh_list = false;
@@ -154,6 +156,13 @@ boost::shared_ptr<DissertationProject::FrameBuffer> apply_shadow_framebuffer;
 boost::shared_ptr<DissertationProject::PostProcessEffect> apply_shadow_effect;
 void ApplyShadowsToFinalImage();
 
+// Prueba para detectar la fuente de luz.
+boost::shared_ptr<DissertationProject::Shader> detect_light_shader;
+boost::shared_ptr<DissertationProject::FrameBuffer> detect_light_framebuffer;
+boost::shared_ptr<DissertationProject::PostProcessEffect> detect_light_effect;
+void DetectLightSource();
+boost::shared_ptr<DissertationProject::FrameBuffer> detect_light_framebuffer_tmp;
+
 
 // Prueba para generar el render de la geometria en un frame buffer aparte.
 boost::shared_ptr<DissertationProject::FrameBuffer> scene_framebuffer;
@@ -166,6 +175,9 @@ DissertationProject::vec3f lightPosition(0.0f, 2.0f, 1.0f);
 //DissertationProject::vec3f lightPos(0, 0, 5.0f);
 DissertationProject::vec3f lightPos(0, 0, 8.0f);
 
+DissertationProject::vec3f DetectedLightPos(0, 0, 0.0f);
+
+
 // prueba para poder hacer swap de los shaders.
 boost::shared_ptr<DissertationProject::Shader> temp_shader;
 
@@ -174,7 +186,7 @@ boost::shared_ptr<DissertationProject::Shader> light_shader;
 
 
 /// Prueba para desplegar HUD.
-void RenderHUD(int found, bool display_hud);
+void RenderHUD(int found, bool display_hud, bool light_detect);
 void RenderRotatingMesh();
 void RenderRotatingMesh2();
 void LoadData();
@@ -437,6 +449,8 @@ static void cleanup(void)
   ReleaseMeshList();
   DissertationProject::Locator::Release();
 
+  mesh_sphere.reset();
+
   // Delete shaders.
   // TODO: tener un shader manager, de tal manera de poder eliminarlos todos facilmetne.
   shader_test.reset();
@@ -448,6 +462,7 @@ static void cleanup(void)
   light_shader.reset();
   blur_shader.reset();
   apply_shadow_shader.reset();
+  detect_light_shader.reset();
 
   frame_buffer.reset();
   grayscale_framebuffer.reset();
@@ -462,12 +477,15 @@ static void cleanup(void)
   blur_framebuffer.reset();
   blur_framebuffer_tmp.reset();
   apply_shadow_framebuffer.reset();
+  detect_light_framebuffer.reset();
+  detect_light_framebuffer_tmp.reset();
 
   mask_effect.reset();
   normalmap_effect.reset();
   grayscale_effect.reset();
   blur_effect.reset();
   apply_shadow_effect.reset();
+  detect_light_effect.reset();
 }
 
 static void processSpecialKeys(int key, int x, int y) {
@@ -786,6 +804,49 @@ void displayGeometry2() {
   glPopMatrix();
 }
 
+void DrawLights(GLdouble *m, GLdouble *p) {
+
+
+  glMatrixMode(GL_PROJECTION);
+  glPushMatrix();
+  glLoadIdentity();
+  //glLoadMatrixd(p);    
+
+  glMatrixMode(GL_MODELVIEW);
+  glPushMatrix();
+  glLoadIdentity();
+  //glLoadMatrixd(m);    
+
+
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluPerspective(45.0f, 640.0 / 480, 0.1f, 100.0f);
+    glMatrixMode(GL_MODELVIEW);
+
+  //// Prueba para pintar la luz
+  glPushMatrix();
+    glColor3f(1, 1, 1);
+    glTranslatef(0, 0, -3);
+    glScalef(0.25, 0.25, 0.25);
+    //mesh_sphere->drawSurface(0);
+  glPopMatrix();
+
+  glPushMatrix();
+    glColor3f(1, 1, 0);
+    glTranslatef(DetectedLightPos.x, DetectedLightPos.y, DetectedLightPos.z);
+    //glTranslatef(DetectedLightPos.x, DetectedLightPos.y, -3);
+    glScalef(0.25, 0.25, 0.25);
+    //mesh_sphere->drawSurface(0);
+  glPopMatrix();
+  /////
+
+  glMatrixMode(GL_PROJECTION);
+  glPopMatrix();
+
+  glMatrixMode(GL_MODELVIEW);
+  glPopMatrix();
+}
+
 void defaultGometryDisplay(int geometries) {
   boost::shared_ptr<DissertationProject::TextureManager> textures = DissertationProject::Locator::GetTextureManager();
 
@@ -959,15 +1020,21 @@ static void Display(void) {
     GenerateShadowMap(prev_m, prev_p);
 
     // Prueba para calcular el grayscale.
-    //RenderGrayscaleToTexture();
+    RenderGrayscaleToTexture();
 
     // prueba para generar el normal map.
     //RenderNormalMapToTexture();
 
+    // 
+    DetectLightSource();
     /////////////////////////////////////
 
     /// Prueba para desplegar HUD del programa.
-    RenderHUD(gPatt_found, display_hud);
+    //RenderHUD(gPatt_found, display_hud, false);
+    RenderHUD(gPatt_found, false, display_hud);
+
+    // prueba para desplegar las fuentes de luz.
+    DrawLights(prev_m, prev_p);
 
     //CalculateFps();
     //CalculateFps2();
@@ -1098,9 +1165,11 @@ void LoadData() {
  // mesh_test->Load("../../media/mesh/cube.obj");
  // mesh_test->Load("../../media/mesh/sphere.obj");
  //  mesh_test->Load("../../media/mesh/apple.obj");
-   mesh_test->Load("../../media/mesh/bigguy.obj");
+  mesh_test->Load("../../media/mesh/bigguy.obj");
   LoadMeshList();
 
+  mesh_sphere = boost::shared_ptr<DissertationProject::MeshObj> (new DissertationProject::MeshObj());
+  mesh_sphere->Load("../../media/mesh/sphere.obj");
                                                                                                                                                                                                          
   //////////////////////////////////////////////
   //// Pruebas para cargar los shaders.
@@ -1245,6 +1314,111 @@ void LoadData() {
   apply_shadow_effect = boost::shared_ptr<DissertationProject::PostProcessEffect> (new DissertationProject::PostProcessEffect(apply_shadow_shader, apply_shadow_framebuffer));
   
   scene_framebuffer = boost::shared_ptr<DissertationProject::FrameBuffer> (new DissertationProject::FrameBuffer(640, 480, GL_BGRA, true));
+
+
+  // prueba para detectar la fuente de luz.
+  detect_light_shader = boost::shared_ptr<DissertationProject::Shader> (new DissertationProject::Shader());
+  detect_light_shader->openVertexP("../../media/shaders/detect_light.vert");
+  detect_light_shader->openFragmentP("../../media/shaders/detect_light.frag");
+  detect_light_shader->load();  
+  detect_light_framebuffer = boost::shared_ptr<DissertationProject::FrameBuffer> (new DissertationProject::FrameBuffer(128, 128, GL_BGRA, true));
+  detect_light_framebuffer_tmp = boost::shared_ptr<DissertationProject::FrameBuffer> (new DissertationProject::FrameBuffer(128, 128, GL_BGRA, true));
+  detect_light_effect = boost::shared_ptr<DissertationProject::PostProcessEffect> (new DissertationProject::PostProcessEffect(detect_light_shader, detect_light_framebuffer));
+}
+
+// Prueba para detectar la fuente de luz
+void DetectLightSource() {
+
+
+  detect_light_framebuffer->Enable();
+
+    glClearColor(0, 0, 0, 0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluPerspective(45, 1.0, 0.1, 100);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+
+    //camera_framebuffer2->Bind();
+    grayscale_framebuffer->Bind();
+
+    glTranslatef(0, 0, -1.4);
+  
+    detect_light_shader->enable();
+      detect_light_shader->setUniform1i("env_map", 0);
+
+      mesh_sphere->drawSurface(0);
+      //DisplayMeshList();
+
+    detect_light_shader->disable();
+
+  ///////////////////////////////////////////////////////////////////
+  // Try to read the data.
+  const int kWidth = detect_light_framebuffer->width();
+  const int kHeight = detect_light_framebuffer->height();
+
+  //GLbyte pixels[4 * kWidth * kHeight];
+  //GLbyte pixels[4 * 128 * 128];
+  //glReadPixels(0, 0, kWidth, kHeight, GL_BGRA, GL_UNSIGNED_BYTE, pixels);
+
+  GLfloat pixels[4 * 128 * 128];
+  glReadPixels(0, 0, kWidth, kHeight, GL_BGRA, GL_FLOAT, pixels);
+
+  int cnt = 0;
+  DissertationProject::vec3f v(0, 0, 0);
+  for (int i = 0; i < kHeight; ++i) {
+    for (int j = 0; j < kWidth; ++j) {
+      if (pixels[(i * kWidth + j) * 4 + 3] < 0.1) continue;
+      v.r += (pixels[(i * kWidth + j) * 4 + 2] - 0.5) * 2;
+      v.g += (pixels[(i * kWidth + j) * 4 + 1] - 0.5) * 2;
+      v.b += (pixels[(i * kWidth + j) * 4 + 0] - 0.5) * 2;
+      cnt++;
+    }
+  }
+
+  
+
+  //v *= 1.0 / (kWidth * kHeight);
+  v *= 1.0 / cnt;
+  v.y *= -1;
+
+  //printf("%.4f %.4f %.4f\n", v.r, v.g, v.b);
+
+//v.normalize();
+
+  //DetectedLightPos = v * 5;
+  //DetectedLightPos.x = 5 * v.x;
+
+  
+
+  DetectedLightPos.z = 3 + v.y * 10;
+  DetectedLightPos.x = v.x * 10;
+  DetectedLightPos.y = v.z * 2;
+
+
+/*
+DetectedLightPos.x = v.x * 5;
+//DetectedLightPos.y = 0.5 + v.y;
+DetectedLightPos.y = v.y * 5;
+DetectedLightPos.z = 1;
+*/
+
+/*
+DetectedLightPos = v;
+DetectedLightPos.y += 1.0;
+DetectedLightPos.z = 1; 
+*/
+
+//DetectedLightPos = DissertationProject::vec3f(0, 8, 3);
+
+  ///////////////////////////////////////////////////////////////////
+
+
+  detect_light_framebuffer->Disable();
+
+
 }
 
 void RenderRotatingMesh2() {
@@ -1415,7 +1589,7 @@ void RenderCameraToTexture(GLdouble *m, GLdouble *p) {
         // Generate the point.
         DissertationProject::vec4d point(i, j, k, 1);
 
-        const double kSphereSize = 0.10; //0.14;
+        const double kSphereSize = 0.13; //0.10; //0.14;
 
         // scale the point
         point *= kSphereSize;
@@ -2013,7 +2187,8 @@ void GenerateShadowMap(GLdouble *modelView, GLdouble *projection) {
   GLfloat lightProjectionMatrix[16], lightViewMatrix[16];
 
   //DissertationProject::vec3f lightPos(0, -2.0f, 4.0f);
-
+  // prueba para rotar las sombras automaticamente.
+/*
   static float dir = -1;
   static float cnt = -2;
   lightPos.x = 3 * std::sin(cnt);
@@ -2022,6 +2197,7 @@ void GenerateShadowMap(GLdouble *modelView, GLdouble *projection) {
   cnt += 0.0125 * dir;
   if (cnt <= -4) dir = 1;
   if (cnt >= -2) dir = -1;
+*/
 
   // Init matrix's
   //glMatrixMode(GL_PROJECTION);
@@ -2029,20 +2205,22 @@ glMatrixMode(GL_MODELVIEW);
   //glLoadMatrixf(lightProjectionMatrix);
   //glLoadMatrixd(projection);
   glLoadIdentity();
-  gluPerspective(45.0f, 1.0f, 1.0f, 20.0f);
+  gluPerspective(45.0f, 1.0f, 1.0f, 40.0f);
   glGetFloatv(GL_MODELVIEW_MATRIX, lightProjectionMatrix);
 
   glMatrixMode(GL_MODELVIEW);
   //glLoadMatrixf(lightViewMatrix);
   glLoadIdentity();
-  //glLoadMatrixd(modelView);
+  glLoadMatrixd(modelView);
   //glTranslatef(0, 0, -5);
   
- gluLookAt(lightPos.x, lightPos.y, lightPos.z,
+ 
+  gluLookAt(DetectedLightPos.x, DetectedLightPos.y, DetectedLightPos.z,
+ //gluLookAt(lightPos.x, lightPos.y, lightPos.z,
   0.0f, 0.0f, 0.0f,
   0.0f, 1.0f, 0.0f);
 
-  //glTranslatef(0, -2, 0);
+  //glTranslatef(0, 0, -4);
 
   //glMultMatrixd(modelView);
   
@@ -2314,7 +2492,7 @@ void RenderQuad(int x, int y, int width, int height) {
 
 
 /// Test to render a HUD...
-void RenderHUD(int found, bool display_hud) {
+void RenderHUD(int found, bool display_hud, bool light_detect) {
 
   boost::shared_ptr<DissertationProject::TextureManager> textures = DissertationProject::Locator::GetTextureManager();
   
@@ -2329,12 +2507,12 @@ void RenderHUD(int found, bool display_hud) {
 
 
   // Render geometry over the layer.
-  //if (found) {
+  if (found) {
     //scene_framebuffer->Bind();
     apply_shadow_framebuffer->Bind();
-    //RenderQuad(512, 352, 128);
     RenderQuad(0, 0, 640, 480);
-  //}
+    //RenderQuad(512, 352, 128, 128);
+  }
 
   if (display_hud) {
   // 1st test.
@@ -2374,6 +2552,17 @@ void RenderHUD(int found, bool display_hud) {
   apply_shadow_framebuffer->Bind();
   RenderQuad(384, 352, 128, 128);
   //RenderQuad(0, 0, 512);
+
+  detect_light_framebuffer->Bind();
+  RenderQuad(512, 352, 128, 128);
+  }
+
+  if (light_detect) {
+    // prueba solo para pintar las fuentes
+    //grayscale_framebuffer->Bind();
+    //RenderQuad(384, 352, 128, 128);
+    detect_light_framebuffer->Bind();
+    RenderQuad(512, 352, 128, 128);
   }
 
   glEnable(GL_DEPTH_TEST);
