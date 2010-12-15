@@ -15,7 +15,7 @@
 #include "math/vector.h"
 #include "string"
 
-// TODO: podria implementar el manejador de estados de esa manera mejorar el rendimiento de la aplicacion. esta entre mis cosas.
+// TODO: implement a state manager to improve the performance of the application.
 
 BEGIN_PROJECT_NAMESPACE();
 
@@ -33,11 +33,9 @@ class OpenGLRenderer : public Renderer {
   /// \brrief Method to get a new texture object.
   virtual boost::shared_ptr<Texture> GetNewTexture() const;
 
-  // TODO: este metodo va a necesitar tener cierta informacion de la textura 
-  // como por ejemplo su dimension, de esta manera va a poder crear un 
-  // rectangulo exacto del tamaño necesario para que no pierda calidad la imagen.
-  void DrawSprite(const std::string& texture); //, // Esto podria ser un identificador para que sea mas rapido el acceso.
-                                               // faltarian aca la posicion, el centro de la imagen, etc. revisar el proyecto de xbox 360 para tener una idea.
+  // Method draw an sprite.
+  // TODO: implement.
+  void DrawSprite(const std::string& texture);
 
  private:
   DISALLOW_COPY_AND_ASSIGN(OpenGLRenderer);

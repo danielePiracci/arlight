@@ -29,9 +29,6 @@ class MeshObj : public Mesh {
 
   virtual void Load(const std::string& file_path);
 
-
-  /////////////////////////////////////
-  /// Prueba para pintar el objeto....
   GLuint surfaceDL;  // Display List of the model surface
 
   void createSurfaceDL();
@@ -41,7 +38,6 @@ class MeshObj : public Mesh {
   std::vector<Group> groupList;
 
   void process();
-  /////////////////////////////////////
 
  private:
   DISALLOW_COPY_AND_ASSIGN(MeshObj);

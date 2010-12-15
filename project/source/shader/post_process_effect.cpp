@@ -32,7 +32,7 @@ void PostProcessEffect::Disable() {
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
 
-  // verificar si no tengo que colocar esto de otra manera.
+  // TODO: Check if I dont have to do this in another way.
   const int kWidth = frame_buffer_->width();
   const int kHeight = frame_buffer_->height();
   glOrtho(0, kWidth, kHeight, 0, -1, 1);

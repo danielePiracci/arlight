@@ -16,8 +16,8 @@
 
 BEGIN_PROJECT_NAMESPACE();
 
-// TODO: por defecto los efectos podrian mandar al shader cosas de uso comun, 
-// como por ejemplo el tamaño de la textura.
+// TODO: By defaul the post process effect could send to the shader common 
+// values such as textures size.
 
 class PostProcessEffect : public Effect {
  public:

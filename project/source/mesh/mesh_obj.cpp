@@ -66,7 +66,7 @@ void MeshObj::Load(const std::string& file_path) {
         //if(strcmp(g.mat.name.c_str(), "") == 0) {
         if (g.mat.size() == 0) {
           // Add the last material defined
-// TODO: Ver como agregar los materiales al modelo.
+// TODO: Check how to add the materials to the application.
 //          g.mat.push_back(MATERIAL(_T("SceneNavigator_Default__")));
 //          g.matIndex.push_back(0);
         }
@@ -91,7 +91,7 @@ void MeshObj::Load(const std::string& file_path) {
       sscanf(str, "%*s %s", str);
 
       // Load the material library
-// TODO: Agregar esta funcion, y ver como voy a hacer la funcionalidad para cargar los materiales.
+// TODO: todo add this functionality and check how to make the changes.
 //      LOAD_MATERIALS(GetAPathFromOne(file_path, str));
       // Process the next line
       continue;
@@ -102,7 +102,7 @@ void MeshObj::Load(const std::string& file_path) {
       // Obtain the material name
       sscanf(str, "%*s %s", str);
 
-// TODO: Ver como voy a hacer la carga y el enlace de los materiales en la aplicacion.
+// TODO: Check how to to make the load of the materials in the application.
 //     g.mat.push_back(MATERIAL(str));
       g.matIndex.push_back(g.faceList.size());
 
@@ -218,7 +218,7 @@ void MeshObj::Load(const std::string& file_path) {
   // Check if the material was defined to the group
   if (g.mat.size() == 0) {
     // Add the last material defined
-// TODO: Agregar esta linea a la carga de los materiales.
+// TODO: Add this line to the load of materials.
 //    g.mat.push_back(MATERIAL(_T("SceneNavigator_Default__")));
     g.matIndex.push_back(0);
   }
@@ -279,7 +279,7 @@ void MeshObj::process() {
 		const int nVertex = static_cast<int> (groupList[i].vertexList.size());
 		// Translate and scale the vertex of the group i
 		for(int j = 0; j < nVertex; ++j) {
-// NOTE: ver como eliminar esta operacion de aca y mantener el resto de cosas funcionando.
+// NOTE: Check how to delete this operation and keep everything else working.
 			groupList[i].vertexList[j] -= center;
 			groupList[i].vertexList[j] *= maxDistance;
 		}

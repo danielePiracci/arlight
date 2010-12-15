@@ -14,7 +14,8 @@
 
 BEGIN_PROJECT_NAMESPACE();
 
-// TODO: implementar alguna manera de manejar multitexturas de objetos.
+// TODO: implement a better way to manage multitextures.
+
 class Texture {
  public:
   /// \brief Standard constructor.
@@ -22,13 +23,6 @@ class Texture {
 
   /// \brief Default destructor.
   virtual ~Texture();
-
-  /// \brief Accesor method to the handler of the texture.
-  /// \return A pointer that contain the handler of the texture.
-  ///
-  /// The handler must contain a 'Release' a method that will called at the 
-  /// end of the app to release the resources.
-//  Handler* handler() const;
 
   /// \brief Accessor method for the texture width.
   /// \return The width of the texture.

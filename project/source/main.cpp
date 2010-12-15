@@ -78,7 +78,10 @@ DissertationProject::OpenGLRenderer renderer;
 
 //// Prueba para cargar un modelo.
 //DissertationProject::MeshObj mesh_test;
+
+int current_mesh = 0;
 boost::shared_ptr<DissertationProject::MeshObj> mesh_test;
+std::vector< boost::shared_ptr<DissertationProject::MeshObj> > meshes_;
 
 boost::shared_ptr<DissertationProject::MeshObj> mesh_sphere;
 
@@ -86,6 +89,11 @@ std::vector<boost::shared_ptr<DissertationProject::MeshObj> > mesh_list;
 
 bool use_mesh_list = false;
 
+// 0 -nothing.
+// 1 -Track ball and ball mask.
+// 2 -Shadow maps.
+// 3 -light sources.
+int current_hud = 0;
 bool display_hud = true;
 
 void LoadMeshList();
@@ -503,30 +511,54 @@ static void cleanup(void)
 }
 
 static void processSpecialKeys(int key, int x, int y) {
-  static int cnt = 0;
+  //static int cnt = 0;
   
   switch (key) {
     case GLUT_KEY_LEFT:
-      lightPosition.x -= 0.1;
-      lightPos.x -= 0.1;
+      current_mesh = (current_mesh + 3) % 4;
+      mesh_test = meshes_[current_mesh];
+      //lightPosition.x -= 0.1;
+      //lightPos.x -= 0.1;
       break;
     case GLUT_KEY_RIGHT:
-      lightPosition.x += 0.1;
-      lightPos.x += 0.1;
+      current_mesh = (current_mesh + 1) % 4;
+      mesh_test = meshes_[current_mesh];
+      //lightPosition.x += 0.1;
+      //lightPos.x += 0.1;
       break;
     case GLUT_KEY_UP:
-      lightPosition.y -= 0.1;
-      lightPos.y -= 0.1;
+      //lightPosition.y -= 0.1;
+      //lightPos.y -= 0.1;
       break;
     case GLUT_KEY_DOWN:
-      lightPosition.y += 0.1;
-      lightPos.y += 0.1;
+      //lightPosition.y += 0.1;
+      //lightPos.y += 0.1;
       break;
     case GLUT_KEY_F1:
+      current_hud = 0;
       //frame_test = cnt % 2 ? blur_framebuffer : modulation_framebuffer;
-      //  frame_test = cnt % 2 ? blur_framebuffer : apply_shadow_framebuffer;
+      //frame_test = cnt % 2 ? blur_framebuffer : apply_shadow_framebuffer;
       display_hud = !display_hud;
-        cnt++;
+        //cnt++;
+      break;
+
+   case GLUT_KEY_F2:
+      current_hud = 1;
+      break;
+   case GLUT_KEY_F3:
+      current_hud = 2;
+      break;
+    case GLUT_KEY_F4:
+      current_hud = 3;
+      break;
+    case GLUT_KEY_F5:
+      current_hud = 4;
+      break;
+    case GLUT_KEY_F6:
+      current_hud = 5;
+      break;
+    case GLUT_KEY_F7:
+      //current_hud = 6;
       break;
     default:
       break;
@@ -1199,11 +1231,11 @@ void LoadData() {
   //////////////////////////////////////////////
   //// Pruebas para cargar los meshes.
   // TODO: crear una variable global que defina el path de la aplicacion actual.
-  mesh_test = boost::shared_ptr<DissertationProject::MeshObj> (new DissertationProject::MeshObj());
+//  mesh_test = boost::shared_ptr<DissertationProject::MeshObj> (new DissertationProject::MeshObj());
  // mesh_test->Load("../../media/mesh/cube.obj");
  // mesh_test->Load("../../media/mesh/sphere.obj");
  //  mesh_test->Load("../../media/mesh/apple.obj");
-  mesh_test->Load("../../media/mesh/bigguy.obj");
+ // mesh_test->Load("../../media/mesh/bigguy.obj");
   LoadMeshList();
 
   mesh_sphere = boost::shared_ptr<DissertationProject::MeshObj> (new DissertationProject::MeshObj());
@@ -2608,25 +2640,6 @@ void RenderGrayscaleToTexture() {
   glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-/*void RenderQuad(int x, int y, int size) {
-  glColor4f(1, 1, 1, 1.0f);
-
-  glPushMatrix();
-    glTranslatef(x, y, 0);    
-    glBegin(GL_QUADS);
-      glTexCoord2f(0, 1);
-      glVertex2f(0, 0);
-      glTexCoord2f(1, 1);
-      glVertex2f(size, 0);
-      glTexCoord2f(1, 0);
-      glVertex2f(size, size);
-      glTexCoord2f(0, 0);
-      glVertex2f(0, size);
-    glEnd();
-  glPopMatrix();    
-}
-*/
-
 void RenderQuad(int x, int y, int width, int height) {
   glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 
@@ -2660,15 +2673,61 @@ void RenderHUD(int found, bool display_hud, bool light_detect) {
   glDepthMask(GL_FALSE);
   ViewOrtho(640, 480);
 
-
   // Render geometry over the layer.
-  if (found) {
+  if (found && current_hud != 4) {
     //scene_framebuffer->Bind();
     apply_shadow_framebuffer->Bind();
     RenderQuad(0, 0, 640, 480);
     //RenderQuad(512, 352, 128, 128);
   }
 
+  // Check if nothing should be rendered.
+  if (current_hud == 0) {
+    //glBindTexture(GL_TEXTURE_2D, 0);
+    //modulation_framebuffer->Bind();
+    //RenderQuad(0, 0, 640, 480);
+  }
+
+  // Check if the track informacion and mask should be displayed.
+  if (current_hud == 1) {
+    camera_framebuffer2->Bind();
+    RenderQuad(0, 352, 128, 128);
+    mask_framebuffer->Bind();
+    RenderQuad(128, 352, 128, 128);
+  }
+
+  // Check if shadow maps should be displayed.
+  if (current_hud == 2) {
+    shadowmap_framebuffer2->Bind();
+    RenderQuad(0, 352, 128, 128);
+    modulation_framebuffer->Bind();
+    RenderQuad(128, 352, 128, 128);
+    scene_framebuffer->Bind();
+    RenderQuad(256, 352, 128, 128);
+    apply_shadow_framebuffer->Bind();
+    RenderQuad(384, 352, 128, 128);
+  }
+
+  // Check if light sources should be displayed.
+  if (current_hud == 3) {
+    camera_framebuffer2->Bind();
+    RenderQuad(0, 352, 128, 128);
+    detect_light_framebuffer->Bind();
+    RenderQuad(128, 352, 128, 128);
+  }
+
+  if (current_hud == 4) {
+    scene_framebuffer->Bind();
+    RenderQuad(0, 0, 640, 480);
+  }
+
+  // Check if only the shadow layer should be displayed.
+  if (current_hud == 5) {
+    modulation_framebuffer->Bind();
+    RenderQuad(0, 0, 640, 480);
+  }
+
+/*
   if (display_hud) {
   // 1st test.
   //textures->EnableTexture("logo");
@@ -2721,7 +2780,7 @@ void RenderHUD(int found, bool display_hud, bool light_detect) {
     detect_light_framebuffer->Bind();
     RenderQuad(512, 352, 128, 128);
   }
-
+*/
   glEnable(GL_DEPTH_TEST);
   glDepthMask(GL_TRUE);
   ViewPerspective();
@@ -2733,6 +2792,22 @@ void RenderHUD(int found, bool display_hud, bool light_detect) {
 }
 
 void LoadMeshList() {
+  // Load meshes.
+  {
+    using namespace DissertationProject;
+
+    for (int i = 0; i < 4; ++i)
+      meshes_.push_back(boost::shared_ptr<MeshObj> (new MeshObj()));
+
+    meshes_[0]->Load("../../media/mesh/cube.obj");
+    meshes_[1]->Load("../../media/mesh/sphere.obj");
+    meshes_[2]->Load("../../media/mesh/apple.obj");
+    meshes_[3]->Load("../../media/mesh/bigguy.obj");
+
+    mesh_test = meshes_[0];
+  }
+
+  // Load mesh animation.
   if (!use_mesh_list) return;
   for (int i = 0; i <= 20; ++i) {
     boost::shared_ptr<DissertationProject::MeshObj> temp =

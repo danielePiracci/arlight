@@ -1,7 +1,10 @@
-// Author: Juan Carlos De Abreu (jcabreur@gmail.com)
-//
-// This class define an interface for techniques that implement culling.
-
+/// \file cull/cull.h
+/// \author Juan Carlos De Abreu (jcabreur@gmail.com)
+/// \date 2008/01/10
+/// \version 1.0
+///
+/// \brief This file declares the DissertationProject::ICull class, 
+/// which implement an interface for techniques that implement culling.
 #ifndef CULL_CULL_H__
 #define CULL_CULL_H__
 

@@ -7,7 +7,7 @@
 
 #include "global.h"
 
-// TODO: colocar esto dentro de un namespace util.
+// TODO: put this code inside of the namespace util.
 
 BEGIN_PROJECT_NAMESPACE();
 

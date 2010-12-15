@@ -9,9 +9,6 @@
 #ifndef MESH_RENDERER_H__
 #define MESH_RENDERER_H__
 
-// TODO: ver lo de las SuperComponent class, para 
-// TODO: hacer que herede de una clase component!!!.
-
 #include "global.h"
 #include "base/component.h"
 

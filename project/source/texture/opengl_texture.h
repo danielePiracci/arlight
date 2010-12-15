@@ -16,8 +16,6 @@
 
 BEGIN_PROJECT_NAMESPACE();
 
-// TODO: implementar alguna manera de manejar multitexturas de objetos.
-
 class OpenGLTexture : public Texture {
  public:
   /// \brief Standard constructor.

@@ -17,7 +17,6 @@
 
 BEGIN_PROJECT_NAMESPACE();
 
-//template<typename T>
 class MeshManager {
  public:
   /// \brief Standard constructor.
@@ -45,37 +44,10 @@ class MeshManager {
 
  private:
   /// \brief Map with all contained textures.
-  //std::map<std::string, boost::shared_ptr<Mesh<T> > > meshes_;
   std::map<std::string, boost::shared_ptr<Mesh> > meshes_;
 
   DISALLOW_COPY_AND_ASSIGN(MeshManager);
 };
-/*
-template<typename T>
-MeshManager<T>::MeshManager() { }
-
-template<typename T>
-MeshManager<T>::~MeshManager() {
-  meshes_.clear();
-}
-
-template<typename T>
-void MeshManager<T>::AddMesh(const std::string& file_path, T* handler) {
-  meshes_[file_path] = boost::shared_ptr<Mesh<T> >(new Mesh<T>(handler));
-}
-
-template<typename T>
-void MeshManager<T>::RemoveMesh(const std::string& file_path) {
-  std::map<std::string, boost::shared_ptr<Mesh<T> > >::const_iterator it = meshes_.find(file_path);
-  meshes_.erase(it);
-}
-
-template<typename T>
-boost::shared_ptr<Mesh<T> > MeshManager<T>::GetMesh(const std::string& file_path) const {
-  std::map<std::string, boost::shared_ptr<Mesh<T> > >::const_iterator it = meshes_.find(file_path);
-  return it == meshes_.end() ? boost::shared_ptr<Mesh<T> >() : it->second;
-}
-*/
 
 END_PROJECT_NAMESPACE();
 
