@@ -1,10 +1,38 @@
-﻿Build started 12/10/2010 2:12:41 AM.
+﻿Build started 12/15/2010 9:46:27 AM.
      1>Project "C:\Users\Avalon\Desktop\arlight client\project\Project.vcxproj" on node 2 (build target(s)).
      1>InitializeBuildStatus:
          Creating "C:\Users\Avalon\Desktop\arlight client\project\..\bin\_intermediate\Release\Project.unsuccessfulbuild" because "AlwaysCreate" was specified.
        ClCompile:
-         C:\Program Files (x86)\Apps\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /I.\source /I.\include\freeimage /IC:\ARToolKit\include /I.\include\fmod /I"C:\Program Files (x86)\Apps\NVIDIA Corporation\NVIDIA PhysX SDK\v2.8.1\SDKs/Physics/include" /I"C:\Program Files (x86)\Apps\NVIDIA Corporation\NVIDIA PhysX SDK\v2.8.1\SDKs/Foundation/include" /I"C:\Program Files (x86)\Apps\NVIDIA Corporation\NVIDIA PhysX SDK\v2.8.1\SDKs/PhysXLoader/include" /I"C:\Program Files (x86)\Apps\NVIDIA Corporation\NVIDIA PhysX SDK\v2.8.1\SDKs/Cooking/include" /I.\include\gl /I"C:\Program Files (x86)\Apps\boost\boost-1.40.0" /Zi /nologo /W3 /WX- /O2 /Oi /Oy- /GL /D WIN32 /D NDEBUG /D _WINDOWS /D NOMINMAX /D BOOST_LIB_DIAGNOSTIC /D BOOST_ALL_DYN_LINK /D BOOST_USE_WINDOWS_H /D _MBCS /Gm- /EHsc /MT /GS /Gy /fp:precise /Zc:wchar_t /Zc:forScope /Fo"C:\Users\Avalon\Desktop\arlight client\project\..\bin\_intermediate\Release\\" /Fd"C:\Users\Avalon\Desktop\arlight client\project\..\bin\_intermediate\Release\vc100.pdb" /Gd /TP /wd4180 /wd4996 /analyze- /errorReport:prompt source\main.cpp
+         C:\Program Files (x86)\Apps\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /I.\source /I.\include\freeimage /IC:\ARToolKit\include /I.\include\fmod /I"C:\Program Files (x86)\Apps\NVIDIA Corporation\NVIDIA PhysX SDK\v2.8.1\SDKs/Physics/include" /I"C:\Program Files (x86)\Apps\NVIDIA Corporation\NVIDIA PhysX SDK\v2.8.1\SDKs/Foundation/include" /I"C:\Program Files (x86)\Apps\NVIDIA Corporation\NVIDIA PhysX SDK\v2.8.1\SDKs/PhysXLoader/include" /I"C:\Program Files (x86)\Apps\NVIDIA Corporation\NVIDIA PhysX SDK\v2.8.1\SDKs/Cooking/include" /I.\include\gl /I"C:\Program Files (x86)\Apps\boost\boost-1.40.0" /Zi /nologo /W3 /WX- /O2 /Oi /Oy- /GL /D WIN32 /D NDEBUG /D _WINDOWS /D NOMINMAX /D BOOST_LIB_DIAGNOSTIC /D BOOST_ALL_DYN_LINK /D BOOST_USE_WINDOWS_H /D _MBCS /Gm- /EHsc /MT /GS /Gy /fp:precise /Zc:wchar_t /Zc:forScope /Fo"C:\Users\Avalon\Desktop\arlight client\project\..\bin\_intermediate\Release\\" /Fd"C:\Users\Avalon\Desktop\arlight client\project\..\bin\_intermediate\Release\vc100.pdb" /Gd /TP /wd4180 /wd4996 /analyze- /errorReport:prompt source\base\locator.cpp source\collision_detection\bounding_box.cpp source\cull\cull.cpp source\cull\frustum_culling.cpp source\game\states\game_state_manager.cpp source\light\light.cpp source\main.cpp source\material\material.cpp source\math\mat4.cpp source\math\vec3.cpp source\mesh\face.cpp source\mesh\group.cpp source\mesh\mesh.cpp source\mesh\mesh_manager.cpp source\mesh\mesh_obj.cpp source\renderer\frame_buffer.cpp source\renderer\hud.cpp source\renderer\mesh_renderer.cpp source\renderer\opengl_mesh_renderer.cpp source\renderer\opengl_renderer.cpp source\renderer\renderer.cpp source\shader\effect.cpp source\shader\post_process_effect.cpp source\shader\shader.cpp source\texture\opengl_texture.cpp source\texture\texture.cpp source\texture\texture_manager.cpp source\util\rand.cpp
+         locator.cpp
+         bounding_box.cpp
+         cull.cpp
+         frustum_culling.cpp
+         game_state_manager.cpp
+         light.cpp
          main.cpp
+         material.cpp
+         mat4.cpp
+         vec3.cpp
+         face.cpp
+         group.cpp
+         mesh.cpp
+         mesh_manager.cpp
+         mesh_obj.cpp
+         frame_buffer.cpp
+         hud.cpp
+         mesh_renderer.cpp
+         opengl_mesh_renderer.cpp
+         opengl_renderer.cpp
+         Compiling...
+         renderer.cpp
+         effect.cpp
+         post_process_effect.cpp
+         shader.cpp
+         opengl_texture.cpp
+         texture.cpp
+         texture_manager.cpp
+         rand.cpp
        Link:
          C:\Program Files (x86)\Apps\Microsoft Visual Studio 10.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\Avalon\Desktop\arlight client\project\..\bin\Release\Project.exe" /NOLOGO /LIBPATH:.\lib\freeimage /LIBPATH:C:\ARToolKit\lib /LIBPATH:.\lib\fmod /LIBPATH:"C:\Program Files (x86)\Apps\NVIDIA Corporation\NVIDIA PhysX SDK\v2.8.1\SDKs/lib/Win32" /LIBPATH:.\lib\gl /LIBPATH:"C:\Program Files (x86)\Apps\boost\boost-1.40.0/lib" FreeImage.lib libAR.lib libARgsub_lite.lib libARvideo.lib fmodex_vc.lib PhysXLoader.lib glut32.lib glew32.lib opengl32.lib glu32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /ManifestFile:"C:\Users\Avalon\Desktop\arlight client\project\..\bin\_intermediate\Release\Project.exe.intermediate.manifest" /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /DEBUG /PDB:"C:\Users\Avalon\Desktop\arlight client\bin\Release\Project.pdb" /OPT:REF /OPT:ICF /LTCG /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\Avalon\Desktop\arlight client\project\..\bin\Release\Project.lib" /MACHINE:X86 "C:\Users\Avalon\Desktop\arlight client\project\..\bin\_intermediate\Release\component.obj"
          "C:\Users\Avalon\Desktop\arlight client\project\..\bin\_intermediate\Release\locator.obj"
@@ -51,4 +79,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:03.92
+Time Elapsed 00:00:23.69

@@ -8,11 +8,7 @@
 #ifndef HUD_H__
 #define HUD_H__
 
-// TODO: esta clase deberia estar en otro lado, la que deberia estar aca es HUDRenderer.
-
 #include "global.h"
-//#include "math/vector.h"
-//#include "string"
 
 BEGIN_PROJECT_NAMESPACE();
 

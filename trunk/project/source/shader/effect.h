@@ -33,8 +33,7 @@ class Effect {
   boost::shared_ptr<Shader> shader() const { return shader_; }
 
  protected:
-  // TODO: cambiar esto para que incluya los shaders separados como tal, es 
-  // decir el efecto se encargara de compilarlos juntos.
+  // TODO: make changes to include every shader independently.
   boost::shared_ptr<Shader> shader_;
 
   // boost::shared_ptr<Shader> vertex_shader_;

@@ -2,8 +2,8 @@
 /// \author Juan Carlos De Abreu (jcabreur@gmail.com)
 /// \date 2009/11/07
 /// \version 1.0
-//
-// This file define a class to create the design pattern singleton.
+///
+/// \brief This file define a class to create the design pattern singleton.
 #ifndef BASE_SINGLETON_H__
 #define BASE_SINGLETON_H__
 

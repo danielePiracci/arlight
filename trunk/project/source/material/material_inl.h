@@ -9,7 +9,6 @@
 #define MATERIAL_INL_H__
 
 #include "material/material.h"
-//#include "game/game.h"
 
 BEGIN_PROJECT_NAMESPACE();
 

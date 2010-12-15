@@ -7,12 +7,6 @@
 /// class, declared at game/states/game_manager.h.
 #include "game/states/game_state_manager.h"
 
-//#include "game/states/load_state.h"
-//#include "game/states/intro_state.h"
-//#include "game/states/play_state.h"
-//#include "game/states/menu_state.h"
-//#include "game/states/credits_state.h"
-
 BEGIN_PROJECT_NAMESPACE();
 BEGIN_NAMESPACE(States);
 
@@ -28,11 +22,6 @@ GameStateManager::~GameStateManager() {
 
 void GameStateManager::Initialize() {
   // Register all the default game states.
-  /*RegisterState(new LoadState(), GameState::kLoadState);
-  RegisterState(new IntroState(), GameState::kIntroState);
-  RegisterState(new PlayState(), GameState::kPlayState);
-  RegisterState(new MenuState(), GameState::kMenuState);
-  RegisterState(new CreditsState(), GameState::kCreditsState);*/
 }
 
 void GameStateManager::Release() {

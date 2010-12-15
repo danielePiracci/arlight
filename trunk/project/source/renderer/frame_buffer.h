@@ -16,8 +16,6 @@
 
 #include "boost/shared_ptr.hpp"
 
-// TODO: Add support to be able of render depth textures.
-
 BEGIN_PROJECT_NAMESPACE();
 
 class FrameBuffer {

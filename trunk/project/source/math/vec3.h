@@ -4,7 +4,6 @@
 /// \version 1.0
 //
 // This file define a template class for 3 dimension vectors.
-
 #ifndef MATH_VEC3_H__
 #define MATH_VEC3_H__
 

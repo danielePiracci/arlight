@@ -176,30 +176,9 @@ class Renderer {
     FILL_SOLID = 3,
   };
 
- protected:
-/*  /// \brief Current matrix for transformations.
-  MatrixHandler current_matrix;
-
-  /// \brief Matrixes with the transformations.
-  std::vector<MatrixHandler> matrixes;
-
-  /// \brief Mesh manager of the renderer.
-  MeshManager<MeshHandler> mesh_manager;
-
-  /// \brief Texture manager of the renderer.
-  TextureManager<TextureHandler> texture_manager;
-*/
-
  private:
   DISALLOW_COPY_AND_ASSIGN(Renderer);
 };
-/*
-template<typename MatrixHandler, typename MeshHandler, typename TextureHandler>
-Renderer<MatrixHandler, MeshHandler, TextureHandler>::Renderer() { }
-
-template<typename MatrixHandler, typename MeshHandler, typename TextureHandler>
-Renderer<MatrixHandler, MeshHandler, TextureHandler>::~Renderer() { }
-*/
 
 END_PROJECT_NAMESPACE();
 

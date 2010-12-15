@@ -17,7 +17,6 @@ Group::~Group() {
 	//mat.clear();
 }
 
-
 // To create the DL of surface
 void Group::createDL() {
   // Add one more matIndex for the limit
