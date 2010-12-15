@@ -28,7 +28,8 @@ void main() {
 
   //if (sum < 1) sum = sum * 0.05 + 0.8;
   //if (sum < 1) sum = sum * 0.05 + 0.8;
-  if (sum < 1) sum = sum * 0.2 + 0.2;
+  if (sum < 1) sum = sum * 0.05 + 0.6;
+  //if (sum < 1) sum = sum * 0.2 + 0.2;
   gl_FragColor = vec4(sum, sum, sum, 1.0);
   //gl_FragColor = vec4(sum, 0, 0, 1.0);
 }

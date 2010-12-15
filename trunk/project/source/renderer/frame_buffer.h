@@ -44,7 +44,9 @@ class FrameBuffer {
   inline int height() const { return height_; }
 
   inline float GetAspect() const { return width_ * 1.0 / height_; }
-   
+  
+  inline boost::shared_ptr<Texture> texture() const { return texture_; }
+ 
  private:
   /// \brief frame buffer width.
   int width_;

@@ -144,6 +144,7 @@ boost::shared_ptr<DissertationProject::Shader> blur_shader;
 boost::shared_ptr<DissertationProject::FrameBuffer> blur_framebuffer;
 boost::shared_ptr<DissertationProject::PostProcessEffect> blur_effect;
 void ApplyBlurEffectToShadows();
+void ApplyBlurEffect(const boost::shared_ptr<DissertationProject::Texture>& texture);
 boost::shared_ptr<DissertationProject::FrameBuffer> blur_framebuffer_tmp;
 
 // To swap between framebuffers during tests.
@@ -163,10 +164,19 @@ boost::shared_ptr<DissertationProject::PostProcessEffect> detect_light_effect;
 void DetectLightSource();
 boost::shared_ptr<DissertationProject::FrameBuffer> detect_light_framebuffer_tmp;
 
+// prueba para generar el mapa difuso.
+boost::shared_ptr<DissertationProject::Shader> gen_diffuse_map_shader;
+boost::shared_ptr<DissertationProject::FrameBuffer> gen_diffuse_map_framebuffer;
+boost::shared_ptr<DissertationProject::PostProcessEffect> gen_diffuse_map_effect;
+void GenerateDiffuseMap();
 
 // Prueba para generar el render de la geometria en un frame buffer aparte.
 boost::shared_ptr<DissertationProject::FrameBuffer> scene_framebuffer;
 void RenderSceneToFrameBuffer(GLdouble *modelView, GLdouble *projection);
+
+
+// Prueba para utilizar el shader de image based lighting.
+boost::shared_ptr<DissertationProject::Shader> ibl_shader;
 
 
 //DissertationProject::vec3f lightPosition(2.0f, 3.0f,-2.0f);
@@ -463,6 +473,8 @@ static void cleanup(void)
   blur_shader.reset();
   apply_shadow_shader.reset();
   detect_light_shader.reset();
+  ibl_shader.reset();
+  gen_diffuse_map_shader.reset();
 
   frame_buffer.reset();
   grayscale_framebuffer.reset();
@@ -479,6 +491,7 @@ static void cleanup(void)
   apply_shadow_framebuffer.reset();
   detect_light_framebuffer.reset();
   detect_light_framebuffer_tmp.reset();
+  gen_diffuse_map_framebuffer.reset();
 
   mask_effect.reset();
   normalmap_effect.reset();
@@ -486,6 +499,7 @@ static void cleanup(void)
   blur_effect.reset();
   apply_shadow_effect.reset();
   detect_light_effect.reset();
+  gen_diffuse_map_effect.reset();
 }
 
 static void processSpecialKeys(int key, int x, int y) {
@@ -863,6 +877,12 @@ void defaultGometryDisplay(int geometries) {
 
   glActiveTexture(GL_TEXTURE2);
   textures->EnableTexture("diff_env_map");
+  
+  glActiveTexture(GL_TEXTURE3);
+  textures->EnableTexture("diffuse_map");
+
+  glActiveTexture(GL_TEXTURE4);
+  textures->EnableTexture("specular_map");
 
   shader_test->enable();
 
@@ -883,9 +903,20 @@ void defaultGometryDisplay(int geometries) {
   // para cube_test.frag
   shader_test->setUniform1i("uCubeTexture", 1);
 
+  // para image based lighting shader.
+  shader_test->setUniform1i("diffuse_map", 3);
+  shader_test->setUniform1i("specular_map", 4);
+
+
   if (geometries & (1<<0)) displayGeometry1();
 
   shader_test->disable();
+
+  glActiveTexture(GL_TEXTURE4);
+  glBindTexture(GL_TEXTURE_2D, 0);
+
+  glActiveTexture(GL_TEXTURE3);
+  glBindTexture(GL_TEXTURE_2D, 0);
 
   //glBindTexture(GL_TEXTURE_2D, 0);
   //glDisable(GL_TEXTURE_2D);
@@ -1016,6 +1047,9 @@ static void Display(void) {
     // Prueba para render to texture.
 //    RenderToTexture();
 
+    // prueba para generar los mapas diffusos y especulares.
+    GenerateDiffuseMap();
+
     // prueba para generar el shadow map.
     GenerateShadowMap(prev_m, prev_p);
 
@@ -1030,8 +1064,8 @@ static void Display(void) {
     /////////////////////////////////////
 
     /// Prueba para desplegar HUD del programa.
-    //RenderHUD(gPatt_found, display_hud, false);
-    RenderHUD(gPatt_found, false, display_hud);
+    RenderHUD(gPatt_found, display_hud, false);
+    //RenderHUD(gPatt_found, false, display_hud);
 
     // prueba para desplegar las fuentes de luz.
     DrawLights(prev_m, prev_p);
@@ -1152,6 +1186,10 @@ void LoadData() {
   textures->RegisterTexture2D("base_map", "../../media/textures/env3.jpg");
   textures->RegisterTexture2D("mask", "../../media/textures/mask.png");
 
+  // prueba para image based lighting shader.
+  textures->RegisterTexture2D("diffuse_map", "../../media/textures/cubeDiff/cube_face_negx.bmp");
+  textures->RegisterTexture2D("specular_map", "../../media/textures/cubeSpe/cube_face_negx.bmp");
+
   //textures->RegisterTextureCubeMap("env_map", "../../media/textures/cube2/opensea.png");
   //textures->RegisterTextureCubeMap("env_map", "../../media/textures/cube/cube_face.bmp");
   textures->RegisterTextureCubeMap("env_map", "../../media/textures/cubeSpe/cube_face.bmp");
@@ -1204,6 +1242,9 @@ void LoadData() {
 
   //shader_test->openVertexP("../../media/shaders/cube_test.vert");
   //shader_test->openFragmentP("../../media/shaders/cube_test.frag");
+
+//  shader_test->openVertexP("../../media/shaders/image_based_lighting.vert");
+//  shader_test->openFragmentP("../../media/shaders/image_based_lighting.frag");
 
   shader_test->load();
 
@@ -1324,6 +1365,59 @@ void LoadData() {
   detect_light_framebuffer = boost::shared_ptr<DissertationProject::FrameBuffer> (new DissertationProject::FrameBuffer(128, 128, GL_BGRA, true));
   detect_light_framebuffer_tmp = boost::shared_ptr<DissertationProject::FrameBuffer> (new DissertationProject::FrameBuffer(128, 128, GL_BGRA, true));
   detect_light_effect = boost::shared_ptr<DissertationProject::PostProcessEffect> (new DissertationProject::PostProcessEffect(detect_light_shader, detect_light_framebuffer));
+
+
+  // test to generate diffuse map.
+  gen_diffuse_map_framebuffer = boost::shared_ptr<DissertationProject::FrameBuffer> (new DissertationProject::FrameBuffer(128, 128, GL_BGRA, true));
+}
+
+void GenerateDiffuseMap() {
+ /* gen_diffuse_map_framebuffer->Enable();
+
+    glClearColor(0, 0, 0, 0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluPerspective(45, 1.0, 0.1, 100);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+
+    glTranslatef(0, 0, -1.4);
+
+    static float angle = 0.0;
+    angle += 1;
+    glRotatef(angle, 1, 0, 0);
+
+    glActiveTexture(GL_TEXTURE0);
+    mask_framebuffer->Bind();
+
+    shader_test->enable();
+      shader_test->setUniform1i("envMap", 0);
+      mesh_sphere->drawSurface(0);
+    shader_test->disable();
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+  gen_diffuse_map_framebuffer->Disable();
+*/
+
+/*
+  ApplyBlurEffect(mask_framebuffer->texture());
+
+
+  glActiveTexture(GL_TEXTURE0);
+  gen_diffuse_map_framebuffer->Bind();
+
+  blur_framebuffer->Enable();
+    glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, blur_framebuffer->width(), blur_framebuffer->height());
+  blur_framebuffer->Disable();
+
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, 0);
+*/
+
 }
 
 // Prueba para detectar la fuente de luz
@@ -1725,6 +1819,66 @@ void GenerateKernelArray(int size, float step, GLfloat *kernel) {
   }
 }
 
+
+void ApplyBlurEffect(const boost::shared_ptr<DissertationProject::Texture>& texture) {
+  GLfloat h_offset[16][2], h_weight[16];
+  GLfloat v_offset[16][2], v_weight[16];
+
+  memset(h_weight, 0, sizeof(h_weight));
+  memset(v_weight, 0, sizeof(v_weight));
+  memset(h_offset, 0, sizeof(h_offset));
+  memset(v_offset, 0, sizeof(v_offset));
+
+  const float texel_size[2] = { 1.0 / blur_effect->frame_buffer()->width(),
+                            1.0 / blur_effect->frame_buffer()->height() };
+
+  GetGaussianOffsets(texel_size, h_offset, h_weight, true);
+  GetGaussianOffsets(texel_size, v_offset, v_weight, false);
+
+  ////
+  // First pass, horizontal blur.
+  glActiveTexture(GL_TEXTURE0);
+  //modulation_framebuffer->Bind();
+  texture->Enable();
+  //camera_framebuffer->Bind();
+
+  blur_effect->Enable();
+    blur_effect->shader()->setUniform1i("base_map", 0);
+    blur_effect->shader()->setUniform1fv("weight", 16, &h_weight[0]);
+    blur_effect->shader()->setUniform2fv("offset", 16, &h_offset[0][0]);
+  blur_effect->Disable();
+
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, 0);
+
+  ////
+  // Store the changes in modulation, TODO: use a different texture...
+  glActiveTexture(GL_TEXTURE0);
+  blur_framebuffer_tmp->Bind();
+
+  blur_framebuffer->Enable();
+    glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, blur_framebuffer->width(), blur_framebuffer->height());
+  blur_framebuffer->Disable();
+
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, 0);
+
+  ////
+  // Second pass, vertical blur.
+  glActiveTexture(GL_TEXTURE0);
+  //modulation_framebuffer->Bind();
+  blur_framebuffer_tmp->Bind();
+
+  blur_effect->Enable();
+    blur_effect->shader()->setUniform1i("base_map", 0);
+    blur_effect->shader()->setUniform1fv("weight", 16, &v_weight[0]);
+    blur_effect->shader()->setUniform2fv("offset", 16, &v_offset[0][0]);
+  blur_effect->Disable();
+
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, 0);
+}
+
 void ApplyBlurEffectToShadows() {
   ////GLfloat KernelValue[] = {
   ////  1.0, 1.0, 1.0,
@@ -2110,7 +2264,8 @@ modulation_framebuffer->Disable();
  glDisable(GL_CULL_FACE);
 
   // Aplicar el filtro blur a la textura con las sombras.
-  ApplyBlurEffectToShadows();
+  //ApplyBlurEffectToShadows();
+  ApplyBlurEffect(modulation_framebuffer->texture());
 
   // Componer la imagen final, agregar las sombras al objeto final.
   ApplyShadowsToFinalImage();
@@ -2523,6 +2678,7 @@ void RenderHUD(int found, bool display_hud, bool light_detect) {
   //frame_buffer->Bind();
   //camera_framebuffer2->Bind();
   shadowmap_framebuffer2->Bind();
+  camera_framebuffer2->Bind();
   RenderQuad(0, 352, 128, 128);
 
   // 2nd test.
@@ -2532,6 +2688,7 @@ void RenderHUD(int found, bool display_hud, bool light_detect) {
   //modulation_framebuffer->Bind();
   //blur_framebuffer->Bind();
   modulation_framebuffer->Bind();
+  gen_diffuse_map_framebuffer->Bind();
   RenderQuad(128, 352, 128, 128);
 
   // 3rd test.
@@ -2545,12 +2702,12 @@ void RenderHUD(int found, bool display_hud, bool light_detect) {
   //RenderQuad(0, 0, 512);
   //frame_buffer->Bind();
   scene_framebuffer->Bind();
-  RenderQuad(256, 352, 128, 128);
+  //RenderQuad(256, 352, 128, 128);
 
   // 4th test.
   //frame_buffer2->Bind();
   apply_shadow_framebuffer->Bind();
-  RenderQuad(384, 352, 128, 128);
+  //RenderQuad(384, 352, 128, 128);
   //RenderQuad(0, 0, 512);
 
   detect_light_framebuffer->Bind();
