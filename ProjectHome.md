@@ -1,0 +1,1 @@
+This project is aimed at the design and implementation of a prototype that estimates light attributes from 2D images and uses this information to improve augmented reality.
